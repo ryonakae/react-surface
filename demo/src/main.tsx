@@ -1,13 +1,13 @@
 import './assets/reset.css';
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import * as WebFontLoader from 'webfontloader';
+import {render as renderDOM} from 'react-dom';
+import {load as loadFonts} from 'webfontloader';
 import {fonts} from './assets/fonts';
 import {AppContainer as HotLoaderContainer} from 'react-hot-loader';
 import {App} from './App';
 
 // Load global assets
-WebFontLoader.load({
+loadFonts({
   google: {families: Object.values(fonts)},
   active: initApp,
   inactive: initApp
@@ -44,7 +44,7 @@ function render (AppComponent: typeof App) {
     );
   }
 
-  ReactDOM.render(composedApp, rootEl);
+  renderDOM(composedApp, rootEl);
 }
 
 function initApp () {
