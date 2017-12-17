@@ -1,5 +1,6 @@
 import './assets/reset.css';
 import * as React from 'react';
+import {render as renderSurface} from 'react-surface';
 import {render as renderDOM} from 'react-dom';
 import {load as loadFonts} from 'webfontloader';
 import {fonts} from './assets/fonts';
@@ -30,21 +31,30 @@ class AppContainer extends React.Component {
   }
 }
 
-const rootEl = document.createElement('div');
-rootEl.id = 'root';
-document.body.appendChild(rootEl);
+const domRoot = document.createElement('div');
+const surfaceRoot = document.createElement('div');
+domRoot.className = 'root';
+surfaceRoot.className = 'root';
+document.body.appendChild(domRoot);
+document.body.appendChild(surfaceRoot);
 
 function render (AppComponent: typeof App) {
-  let composedApp = <AppComponent/>;
-  if (module.hot) {
-    composedApp = (
-      <AppContainer>
-        {composedApp}
-      </AppContainer>
-    );
-  }
+  const targets: any = [
+    [renderDOM, domRoot, false],
+    [renderSurface, surfaceRoot, true]
+  ];
 
-  renderDOM(composedApp, rootEl);
+  for (const [renderToTarget, target, log] of targets) {
+    let composedApp = <AppComponent log={log}/>;
+    if (module.hot) {
+      composedApp = (
+        <AppContainer>
+          {composedApp}
+        </AppContainer>
+      );
+    }
+    renderToTarget(composedApp, target);
+  }
 }
 
 function initApp () {
