@@ -1,9 +1,9 @@
 import * as fs from 'fs';
-import * as React from 'react';
 import * as path from 'path';
 import * as webpack from 'webpack';
 import {HotModuleReplacementPlugin, LoaderOptionsPlugin, NamedModulesPlugin, NewModule} from 'webpack';
 import {BuildOptions} from './BuildOptions';
+import {without} from 'lodash';
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const AutoDllPlugin = require('autodll-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -38,7 +38,10 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
 
     // Determine which extensions to lazy-load and how to look for sources
     resolve: {
-      extensions: ['.ts', '.tsx', '.js']
+      extensions: ['.ts', '.tsx', '.js'],
+      alias: {
+        'react-surface': path.resolve(__dirname, '../src')
+      }
     },
 
     // Teach webpack how to load various modules
@@ -91,7 +94,10 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
         debug: true,
         filename: '[name].dll.js',
         entry: {
-          vendor: Object.keys(JSON.parse(fs.readFileSync('./package.json', 'utf8')).dependencies)
+          vendor: without(
+            Object.keys(JSON.parse(fs.readFileSync('./package.json', 'utf8')).dependencies),
+            'react-hot-loader'
+          )
         }
       }),
 
