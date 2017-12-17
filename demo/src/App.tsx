@@ -64,7 +64,7 @@ export class App extends React.Component<{log: boolean}> {
   }
 
   render () {
-    const throwAway = this.isAlternate;
+    const throwAway = this.isAlternate; // tslint:disable-line
     return (
       <surface ref={(node: any) => this.node = node} style={styles.app}>
         {range(0, this.boxCount).map((number) => <Box key={number}/>)}
