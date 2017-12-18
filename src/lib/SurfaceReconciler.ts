@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {SurfaceComponentTree} from './SurfaceComponentTree';
+import {isDirectTextChildProps} from './isDirectTextChildProps';
 const createReconciler = require('react-reconciler');
 const now = require('performance-now');
 
@@ -71,10 +72,7 @@ export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
       },
 
       shouldSetTextContent (type: string, props: SurfaceProps): boolean {
-        return (
-          typeof props.children === 'string' ||
-          typeof props.children === 'number'
-        );
+        return isDirectTextChildProps(props);
       },
 
       shouldDeprioritizeSubtree (type: string, props: SurfaceProps): boolean {
@@ -82,7 +80,8 @@ export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
       },
 
       createTextInstance (text: string, root: TRoot, context: HostContext, fiber: FiberNode) {
-        const instance = createInstance({value: text}, 'text', root);
+        const instance = createInstance({}, 'text', root);
+        instance.textValue = text;
         componentTree.register(fiber, instance);
         return instance;
       },
@@ -143,6 +142,9 @@ export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
 
 function logMonkeyPatchObject (path: string[] = [], obj: any, recurse: boolean = true) {
   for (const key in obj) {
+    if (key === 'now') {
+      continue;
+    }
     if (typeof obj[key] === 'function') {
       logMonkeyPatchFunction(obj, key, path);
     } else if (recurse && typeof obj[key] === 'object') {
@@ -157,7 +159,9 @@ function logMonkeyPatchFunction (obj: any, key: string, path: string[]) {
   const originalFunction = obj[key];
   const functionId = path.concat(key).join('.');
   obj[key] = function () {
-    console.info(functionId);
-    return originalFunction.apply(null, arguments);
+    const cleanArgs = [...arguments];
+    const printableArgs = cleanArgs.filter((arg) => typeof arg === 'string');
+    console.info(functionId, ...printableArgs);
+    return originalFunction(...cleanArgs);
   };
 }

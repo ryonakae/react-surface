@@ -1,8 +1,11 @@
-export class NoopSurface implements ISurface {
+import {isDirectTextChildProps} from './isDirectTextChildProps';
+
+export class BaseSurface implements ISurface {
   id: number;
   parentNode: ISurface;
   textValue: string;
 
+  public props: SurfaceProps;
   private mutableChildren: ISurface[] = [];
 
   get children () {
@@ -10,11 +13,16 @@ export class NoopSurface implements ISurface {
   }
 
   constructor (
-    public props: SurfaceProps = {}
-  ) {}
+    props: SurfaceProps = {}
+  ) {
+    this.updateProps(props);
+  }
 
   updateProps (props: SurfaceProps): void {
     this.props = props;
+    if (isDirectTextChildProps(props)) {
+      this.textValue = props.children;
+    }
   }
 
   appendChild (child: ISurface): void {
@@ -35,7 +43,7 @@ export class NoopSurface implements ISurface {
   }
 }
 
-export class NoopSurfaceRoot extends NoopSurface implements ISurfaceRoot {
+export class BaseSurfaceRoot extends BaseSurface implements ISurfaceRoot {
   private idCounter = 0;
 
   getNextSurfaceId () {

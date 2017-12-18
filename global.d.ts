@@ -13,8 +13,7 @@ declare type SurfaceProps = {
   ref?: (surf: any) => void,
   style?: any,
   children?: any, // ISurface | Array<ISurface>
-  hidden?: boolean,
-  value?: any
+  hidden?: boolean
 };
 
 declare interface ISurface {

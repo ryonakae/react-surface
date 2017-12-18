@@ -1,6 +1,6 @@
-import {NoopSurface} from './NoopSurface';
+import {BaseSurface} from './BaseSurface';
 
-export class DOMSurface extends NoopSurface {
+export class DOMSurface extends BaseSurface {
   id: number;
 
   private textNode: Text;
@@ -23,7 +23,7 @@ export class DOMSurface extends NoopSurface {
     }
 
     if (isText) {
-      this.textNode = (node as Text) || document.createTextNode(props.value);
+      this.textNode = (node as Text) || document.createTextNode('');
     } else {
       this.domNode = (node as HTMLElement) || document.createElement('div');
     }
@@ -41,9 +41,9 @@ export class DOMSurface extends NoopSurface {
     return this.textNode.textContent;
   }
 
-  set textValue (value: string) {
+  set textValue (text: string) {
     console.info(this.constructor.name + '.setTextValue', ...arguments);
-    this.textNode.textContent = value;
+    this.textNode.textContent = text;
   }
 
   updateProps (props: SurfaceProps) {
@@ -51,12 +51,11 @@ export class DOMSurface extends NoopSurface {
 
     console.info(this.constructor.name + '.updateProps', ...arguments);
     const {style, children}: any = props;
-    for (const styleKey in style) {
-      const newValue = style[styleKey];
-      (this.domNode.style as any)[styleKey] = typeof newValue === 'number' ? newValue + 'px' : newValue;
-    }
-    if (this.textNode) {
-      this.textValue = props.value;
+    if (this.domNode) {
+      for (const styleKey in style) {
+        const newValue = style[styleKey];
+        (this.domNode.style as any)[styleKey] = typeof newValue === 'number' ? newValue + 'px' : newValue;
+      }
     }
     if (children) {
       // this.domNode.textContent = children;

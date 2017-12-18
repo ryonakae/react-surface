@@ -1,28 +1,13 @@
 import * as React from 'react';
 import {createSurfaceReconciler, ReactContainer, ReactReconciler} from './SurfaceReconciler';
 import {SurfaceComponentTree} from './SurfaceComponentTree';
-import {NoopSurface, NoopSurfaceRoot} from './NoopSurface';
+import {BaseSurface, BaseSurfaceRoot} from './BaseSurface';
 
 // Helpers
-const App = ({items}: {items: any[]}) => (
-  <surface>
-    {items.map((props) => {
-      let {key, value} = props;
-      if (typeof props !== 'object') {
-        value = key = props;
-      }
-
-      return (
-        <surface key={key} value={value}/>
-      );
-    })}
-  </surface>
-);
-
 describe('SurfaceReconciler', () => {
   let componentTree: SurfaceComponentTree;
-  let reconciler: ReactReconciler<NoopSurfaceRoot>;
-  let container: ReactContainer<NoopSurfaceRoot>;
+  let reconciler: ReactReconciler<BaseSurfaceRoot>;
+  let container: ReactContainer<BaseSurfaceRoot>;
 
   function render (element: React.ReactElement<{}>): ISurface {
     reconciler.updateContainer(element, container);
@@ -31,8 +16,8 @@ describe('SurfaceReconciler', () => {
 
   beforeEach(() => {
     componentTree = new SurfaceComponentTree();
-    reconciler = createSurfaceReconciler<NoopSurfaceRoot>(componentTree, (props) => new NoopSurface(props));
-    container = reconciler.createContainer(new NoopSurfaceRoot());
+    reconciler = createSurfaceReconciler<BaseSurfaceRoot>(componentTree, (props) => new BaseSurface(props));
+    container = reconciler.createContainer(new BaseSurfaceRoot());
 
     this.originalConsoleInfo = console.info;
     console.info = (): null => null;
@@ -49,31 +34,53 @@ describe('SurfaceReconciler', () => {
     expect(surface.children.length).toBe(0);
   });
 
-  it(`can append child`, () => {
-    const app = render(<App items={[1]}/>);
-    expect(app.children.length).toBe(1);
-  });
-
-  it(`can append children in order`, () => {
-    const values = [1, 2, 3];
-    const app = render(<App items={values}/>);
-    expect(app.children.length).toBe(values.length);
-    app.children.forEach((child, index) =>
-      expect(child.props.value).toBe(values[index])
+  it(`can append surface`, () => {
+    const container = render(
+      <surface>
+        <surface/>
+      </surface>
     );
+
+    const firstBefore = container.children[0];
+
+    render(
+      <surface>
+        <surface/>
+        <surface/>
+      </surface>
+    );
+
+    const [firstAfter, secondAfter] = container.children;
+
+    expect(firstBefore).toBe(firstAfter);
+    expect(secondAfter).not.toBe(firstBefore);
   });
 
-  it(`can insert child`, () => {
-    const app = render(<App items={[1, 2, 3]} />);
-    const beforeSurfaces = app.children.slice();
+  it(`can insert surface`, () => {
+    const surface = render(
+      <surface>
+        <surface key={1}/>
+        <surface key={2}/>
+        <surface key={3}/>
+      </surface>
+    );
 
-    render(<App items={[1, 10, 2, 3]} />);
-    const remainingSurfaces = app.children.slice();
+    const beforeSurfaces = surface.children.slice();
+
+    render(
+      <surface>
+        <surface key={1}/>
+        <surface key="LOL"/>
+        <surface key={2}/>
+        <surface key={3}/>
+      </surface>
+    );
+
+    const remainingSurfaces = surface.children.slice();
     const newSurface = remainingSurfaces.splice(1, 1)[0];
 
     // Expect the inserted surface to be new
     expect(beforeSurfaces).not.toContain(newSurface);
-    expect(newSurface.props.value).toBe(10);
 
     // Expect the other surfaces to remain the same
     remainingSurfaces.forEach((after, index) => {
@@ -82,47 +89,142 @@ describe('SurfaceReconciler', () => {
     });
   });
 
-  it(`can update a surface value`, () => {
-    const beforeItem = 1;
-    const afterItem = {key: 1, value: 5};
+  it(`can update surface`, () => {
+    const afterProps = {style: {width: 10, height: 10}, hidden: false};
 
-    let app = render(<App items={[beforeItem]} />);
-    const beforeSurface = app.children[0];
+    const container = render(
+      <surface>
+        <surface/>
+      </surface>
+    );
 
-    app = render(<App items={[afterItem]}/>);
-    const afterSurface = app.children[0];
+    const beforeSurface = container.children[0];
+
+    render(
+      <surface>
+        <surface {...afterProps}/>
+      </surface>
+    );
+
+    const afterSurface = container.children[0];
 
     expect(beforeSurface).toBe(afterSurface);
-    expect(afterSurface.props.value).toBe(afterItem.value);
+    expect(afterSurface.props).toEqual(afterProps);
   });
 
-  it(`can remove child`, () => {
-    render(<App items={[1, 2]}/>);
-    const app = render(<App items={[2]}/>);
-    expect(app.children.length).toBe(1);
-    expect(app.children[0].props.value).toBe(2);
-  });
+  it(`can remove surface`, () => {
+    const container = render(
+      <surface>
+        <surface key={1}/>
+        <surface key={2}/>
+      </surface>
+    );
 
-  xit(`can update props`, () => {
+    const [beforeOne, beforeTwo] = container.children;
 
+    render(
+      <surface>
+        <surface key={2}/>
+      </surface>
+    );
+
+    const [afterTwo] = container.children;
+
+    expect(container.children.length).toBe(1);
+    expect(afterTwo).toBe(beforeTwo);
   });
 
   // Texts
 
-  xit(`can append text child`, () => {
-
+  it(`can initialize text content`, () => {
+    const container = render(<surface>Hello</surface>);
+    expect(container.textValue).toEqual('Hello');
   });
 
-  xit(`can insert text child before`, () => {
-
+  it(`can set text content`, () => {
+    const container = render(<surface>Hello</surface>);
+    render(<surface>Changed</surface>);
+    expect(container.textValue).toEqual('Changed');
   });
 
-  xit(`can remove text child`, () => {
+  it(`can insert text`, () => {
+    const container = render(
+      <surface>
+        <surface key="left"/>
+        <surface key="right"/>
+      </surface>
+    );
 
+    const [leftBefore, rightBefore] = container.children.slice();
+
+    render(
+      <surface>
+        <surface key="left"/>
+        Inserted
+        <surface key="right"/>
+      </surface>
+    );
+
+    expect(container.children.length).toBe(3);
+    const [leftAfter, middleAfter, rightAfter] = container.children.slice();
+
+    expect(leftAfter).toBe(leftBefore);
+    expect(rightAfter).toBe(rightBefore);
+
+    expect([leftBefore, rightBefore]).not.toContain(middleAfter);
+    expect(middleAfter.textValue).toBe('Inserted');
   });
 
-  xit(`can update text value `, () => {
+  it(`can update text`, () => {
+    const container = render(
+      <surface>
+        <surface/>
+        Original
+        <surface/>
+      </surface>
+    );
 
+    const [leftBefore, middleBefore, rightBefore] = container.children.slice();
+
+    render(
+      <surface>
+        <surface/>
+        Updated
+        <surface/>
+      </surface>
+    );
+
+    const [leftAfter, middleAfter, rightAfter] = container.children.slice();
+
+    expect(leftAfter).toBe(leftBefore);
+    expect(middleAfter).toBe(middleBefore);
+    expect(rightAfter).toBe(rightBefore);
+    expect(middleAfter.textValue).toBe('Updated');
+  });
+
+  it(`can remove text`, () => {
+    const container = render(
+      <surface>
+        <surface key="left"/>
+        Text
+        <surface key="right"/>
+      </surface>
+    );
+
+    const [leftBefore, middleBefore, rightBefore] = container.children.slice();
+
+    render(
+      <surface>
+        <surface key="left"/>
+        <surface key="right"/>
+      </surface>
+    );
+
+    const [leftAfter, rightAfter] = container.children.slice();
+
+    expect(container.children.length).toBe(2);
+    expect(leftAfter).toBe(leftBefore);
+    expect(rightAfter).toBe(rightBefore);
   });
 
   // Events
