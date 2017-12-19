@@ -228,14 +228,14 @@ describe('BaseSurface', () => {
 
   // Events
   
-  fit(`can add event handler`, () => {
+  it(`can add event handler`, () => {
     let triggered = false;
     const container = render(<surface onClick={() => triggered = true}/>);
     container.emitEvent(new Event('onClick'));
     expect(triggered).toBe(true);
   });
 
-  fit(`can update event handler`, () => {
+  it(`can update event handler`, () => {
     let first = false;
     let second = false;
     const container = render(<surface onClick={() => first = true}/>);
@@ -245,7 +245,7 @@ describe('BaseSurface', () => {
     expect(second).toBe(true);
   });
   
-  fit(`can remove event handler`, () => {
+  it(`can remove event handler`, () => {
     let triggered = false;
     const container = render(<surface onClick={() => triggered = true}/>);
     render(<surface/>);
