@@ -29,6 +29,7 @@ declare interface ISurface {
   parentNode: ISurface;
   textValue: string;
   props: SurfaceProps;
+  hostInstance: any;
 
   updateProps (props: SurfaceProps): void;
 

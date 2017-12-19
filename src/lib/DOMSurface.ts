@@ -36,7 +36,7 @@ export class DOMSurface extends BaseSurface {
     console.info('new ' + this.constructor.name + '()');
   }
 
-  get node () {
+  get hostInstance () {
     return this.textNode || this.domNode;
   }
 
@@ -69,19 +69,19 @@ export class DOMSurface extends BaseSurface {
 
   appendChild (child: DOMSurface) {
     super.appendChild(child);
-    this.domNode.appendChild(child.node);
+    this.domNode.appendChild(child.hostInstance);
     console.info(this.constructor.name + '.appendChild', ...arguments);
   }
 
   insertBefore (child: DOMSurface, beforeChild: DOMSurface) {
     super.insertBefore(child, beforeChild);
-    this.domNode.insertBefore(child.node, beforeChild.node);
+    this.domNode.insertBefore(child.hostInstance, beforeChild.hostInstance);
     console.info(this.constructor.name + '.insertBefore', ...arguments);
   }
 
   removeChild (child: DOMSurface) {
     super.removeChild(child);
-    this.domNode.removeChild(child.node);
+    this.domNode.removeChild(child.hostInstance);
     console.info(this.constructor.name + '.removeChild', ...arguments);
   }
 

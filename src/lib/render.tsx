@@ -10,15 +10,11 @@ const reconciler = createSurfaceReconciler<DOMSurfaceRoot, DOMSurface>(
 );
 
 export function render<P> (element: ReactElement<P>, target: HTMLElement) {
-  // Here, schedule a top level update using CustomRenderer.updateContainer(), see Part-IV for more details.
   reconciler.injectIntoDevTools({
     bundleType: 1, // 0 for PROD, 1 for DEV
     version: '0.1.0', // version for your renderer
     rendererPackageName: 'react-surface', // package name
-    findFiberByHostInstance: (element: Element) => {
-      // return SurfaceComponentTree.getClosestInstanceFromNode(element);
-      debugger;
-    }
+    findFiberByHostInstance: componentTree.findFiberByHostInstance.bind(componentTree)
   });
 
   const rootContainer = (target as any)._reactRootContainer || (

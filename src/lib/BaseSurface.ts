@@ -5,6 +5,7 @@ export class BaseSurface implements ISurface {
   id: number;
   parentNode: BaseSurface;
   textValue: string;
+  hostInstance: any;
 
   public props: SurfaceProps = {};
   private mutableChildren: BaseSurface[] = [];
