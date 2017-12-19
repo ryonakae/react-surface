@@ -252,18 +252,4 @@ describe('BaseSurface', () => {
     container.emitEvent(new Event('onClick'));
     expect(triggered).toBe(false);
   });
-
-  // Side effects
-
-  xit(`ignores updates with no prop changes`, () => {
-
-  });
-
-  xit(`gets added to component tree`, () => {
-
-  });
-
-  xit(`gets removed from component tree`, () => {
-
-  });
 });
