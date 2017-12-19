@@ -1,5 +1,5 @@
 {
-  "name": "surface",
+  "name": "react-surface",
   "version": "0.1.0",
   "description": "A custom react renderer utilizing facebook yoga targeting canvas/webgl",
   "author": "Kasper Sandin",
