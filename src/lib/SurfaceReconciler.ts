@@ -19,9 +19,9 @@ export type ReactReconciler<TRoot extends ISurfaceRoot> = {
   updateContainer<P> (element: React.ReactElement<P>, container: ReactContainer<TRoot>): void;
 };
 
-export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
+export function createSurfaceReconciler<TRoot extends ISurfaceRoot, TSurface extends ISurface> (
   componentTree: SurfaceComponentTree,
-  createInstance: (props: SurfaceProps, type: string, root: TRoot) => ISurface
+  createInstance: (type: string, root: TRoot) => TSurface
 ): ReactReconciler<TRoot> {
   return createReconciler(
     logMonkeyPatchObject(['SurfaceReconciler'], {
@@ -33,7 +33,7 @@ export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
         return {};
       },
 
-      getPublicInstance (instance: ISurface) {
+      getPublicInstance (instance: TSurface) {
         return instance;
       },
 
@@ -51,21 +51,22 @@ export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
       },
 
       createInstance (type: string, props: SurfaceProps, root: TRoot, context: HostContext, fiber: FiberNode) {
-        const instance = createInstance(props, type, root);
+        const instance = createInstance(type, root);
+        instance.updateProps(props);
         componentTree.register(fiber, instance);
         return instance;
       },
 
-      appendInitialChild (parentInstance: ISurface, child: ISurface) {
+      appendInitialChild (parentInstance: TSurface, child: TSurface) {
         parentInstance.appendChild(child);
       },
 
-      finalizeInitialChildren (instance: ISurface, type: string, props: SurfaceProps, root: TRoot) {
+      finalizeInitialChildren (instance: TSurface, type: string, props: SurfaceProps, root: TRoot) {
         return false;
       },
 
       prepareUpdate (
-        instance: ISurface, type: string, oldProps: SurfaceProps,
+        instance: TSurface, type: string, oldProps: SurfaceProps,
         newProps: SurfaceProps, root: TRoot, context: HostContext
       ) {
         return newProps;
@@ -80,7 +81,7 @@ export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
       },
 
       createTextInstance (text: string, root: TRoot, context: HostContext, fiber: FiberNode) {
-        const instance = createInstance({}, 'text', root);
+        const instance = createInstance('text', root);
         instance.textValue = text;
         componentTree.register(fiber, instance);
         return instance;
@@ -91,47 +92,47 @@ export function createSurfaceReconciler<TRoot extends ISurfaceRoot> (
       useSyncScheduling: true,
 
       mutation: {
-        commitMount (instance: ISurface, type: string, newProps: SurfaceProps, fiber: FiberNode) {
+        commitMount (instance: TSurface, type: string, newProps: SurfaceProps, fiber: FiberNode) {
 
         },
 
         commitUpdate (
-          instance: ISurface, payload: SurfaceProps, type: string,
+          instance: TSurface, payload: SurfaceProps, type: string,
           oldProps: SurfaceProps, newProps: SurfaceProps, fiber: FiberNode
         ) {
           instance.updateProps(payload);
         },
 
-        resetTextContent (instance: ISurface) {
+        resetTextContent (instance: TSurface) {
           instance.textValue = '';
         },
 
-        commitTextUpdate (element: ISurface, oldText: string, newText: string) {
+        commitTextUpdate (element: TSurface, oldText: string, newText: string) {
           element.textValue = newText;
         },
 
-        appendChild (parentInstance: ISurface, child: ISurface) {
+        appendChild (parentInstance: TSurface, child: TSurface) {
           parentInstance.appendChild(child);
         },
 
-        appendChildToContainer (container: TRoot, child: ISurface) {
+        appendChildToContainer (container: TRoot, child: TSurface) {
           container.appendChild(child);
         },
 
-        insertBefore (parentInstance: ISurface, child: ISurface, beforeChild: ISurface) {
+        insertBefore (parentInstance: TSurface, child: TSurface, beforeChild: TSurface) {
           parentInstance.insertBefore(child, beforeChild);
         },
 
-        insertInContainerBefore (container: TRoot, child: ISurface, beforeChild: ISurface,) {
+        insertInContainerBefore (container: TRoot, child: TSurface, beforeChild: TSurface,) {
           container.insertBefore(child, beforeChild);
         },
 
-        removeChild (parentInstance: ISurface, child: ISurface) {
+        removeChild (parentInstance: TSurface, child: TSurface) {
           parentInstance.removeChild(child);
           componentTree.release(child);
         },
 
-        removeChildFromContainer (container: TRoot, child: ISurface) {
+        removeChildFromContainer (container: TRoot, child: TSurface) {
           container.removeChild(child);
           componentTree.release(child);
         },

@@ -1,5 +1,11 @@
 import {BaseSurface} from './BaseSurface';
 
+const eventNameMap: {[key: string]: string} = {
+  onClick: 'click',
+  onMouseEnter: 'onmouseenter',
+  onMouseLeave: 'onmouseenter'
+};
+
 export class DOMSurface extends BaseSurface {
   id: number;
 
@@ -7,12 +13,11 @@ export class DOMSurface extends BaseSurface {
   private domNode: HTMLElement;
 
   constructor (
-    props: SurfaceProps,
     isText: boolean,
     root: DOMSurfaceRoot,
     node: HTMLElement | Text = undefined
   ) {
-    super(props);
+    super();
 
     if (root) {
       this.id = root.getNextSurfaceId();
@@ -28,8 +33,7 @@ export class DOMSurface extends BaseSurface {
       this.domNode = (node as HTMLElement) || document.createElement('div');
     }
 
-    console.info('new ' + this.constructor.name + '()', props);
-    this.updateProps(props);
+    console.info('new ' + this.constructor.name + '()');
   }
 
   get node () {
@@ -80,13 +84,21 @@ export class DOMSurface extends BaseSurface {
     this.domNode.removeChild(child.node);
     console.info(this.constructor.name + '.removeChild', ...arguments);
   }
+
+  protected addEventListener (name: string, handler: (e: Event) => any) {
+    this.domNode.addEventListener(eventNameMap[name], handler);
+  }
+
+  protected removeEventListener (name: string, handler: (e: Event) => any) {
+    this.domNode.removeEventListener(eventNameMap[name], handler);
+  }
 }
 
 export class DOMSurfaceRoot extends DOMSurface implements ISurfaceRoot {
   private idCounter = 0;
 
   constructor (target: HTMLElement) {
-    super({}, false, null, target);
+    super(false, null, target);
   }
 
   getNextSurfaceId () {

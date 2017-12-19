@@ -1,22 +1,21 @@
 import * as React from 'react';
 import {createSurfaceReconciler, ReactContainer, ReactReconciler} from './SurfaceReconciler';
 import {SurfaceComponentTree} from './SurfaceComponentTree';
-import {BaseSurface, BaseSurfaceRoot} from './BaseSurface';
+import {BaseSurfaceRoot} from './BaseSurface';
+import {TestSurface} from './TestSurface';
 
-// Helpers
-describe('SurfaceReconciler', () => {
-  let componentTree: SurfaceComponentTree;
+describe('BaseSurface', () => {
   let reconciler: ReactReconciler<BaseSurfaceRoot>;
   let container: ReactContainer<BaseSurfaceRoot>;
 
-  function render (element: React.ReactElement<{}>): ISurface {
+  function render (element: React.ReactElement<{}>) {
     reconciler.updateContainer(element, container);
     return container.containerInfo.children[0];
   }
 
   beforeEach(() => {
-    componentTree = new SurfaceComponentTree();
-    reconciler = createSurfaceReconciler<BaseSurfaceRoot>(componentTree, (props) => new BaseSurface(props));
+    const tree = new SurfaceComponentTree();
+    reconciler = createSurfaceReconciler<BaseSurfaceRoot, TestSurface>(tree, () => new TestSurface());
     container = reconciler.createContainer(new BaseSurfaceRoot());
 
     this.originalConsoleInfo = console.info;
@@ -229,12 +228,29 @@ describe('SurfaceReconciler', () => {
 
   // Events
   
-  xit(`can bind events`, () => {
+  fit(`can add event handler`, () => {
+    let triggered = false;
+    const container = render(<surface onClick={() => triggered = true}/>);
+    container.emitEvent(new Event('onClick'));
+    expect(triggered).toBe(true);
+  });
 
+  fit(`can update event handler`, () => {
+    let first = false;
+    let second = false;
+    const container = render(<surface onClick={() => first = true}/>);
+    render(<surface onClick={() => second = true}/>);
+    container.emitEvent(new Event('onClick'));
+    expect(first).toBe(false);
+    expect(second).toBe(true);
   });
   
-  xit(`can unbind events`, () => {
-
+  fit(`can remove event handler`, () => {
+    let triggered = false;
+    const container = render(<surface onClick={() => triggered = true}/>);
+    render(<surface/>);
+    container.emitEvent(new Event('onClick'));
+    expect(triggered).toBe(false);
   });
 
   // Side effects

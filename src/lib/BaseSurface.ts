@@ -1,45 +1,71 @@
 import {isDirectTextChildProps} from './isDirectTextChildProps';
+import {diffEventProps} from './diffEventProps';
 
 export class BaseSurface implements ISurface {
   id: number;
-  parentNode: ISurface;
+  parentNode: BaseSurface;
   textValue: string;
 
-  public props: SurfaceProps;
-  private mutableChildren: ISurface[] = [];
+  public props: SurfaceProps = {};
+  private mutableChildren: BaseSurface[] = [];
 
   get children () {
     return Object.freeze(this.mutableChildren.slice());
   }
 
-  constructor (
-    props: SurfaceProps = {}
-  ) {
-    this.updateProps(props);
-  }
+  updateProps (nextProps: SurfaceProps): void {
+    if (isDirectTextChildProps(nextProps)) {
+      this.textValue = nextProps.children as string;
+      return;
+    }
 
-  updateProps (props: SurfaceProps): void {
-    this.props = props;
-    if (isDirectTextChildProps(props)) {
-      this.textValue = props.children;
+    const prevProps = this.props;
+    this.props = nextProps;
+
+    const {removed, added, changed} = diffEventProps(prevProps, nextProps);
+
+    for (const name in removed) {
+      this.removeEventListener(name, removed[name]);
+    }
+
+    for (const name in changed) {
+      const [prevHandler, nextHandler] = changed[name];
+      this.removeEventListener(name, prevHandler);
+      this.addEventListener(name, nextHandler);
+    }
+
+    for (const name in added) {
+      this.addEventListener(name, added[name]);
     }
   }
 
-  appendChild (child: ISurface): void {
+  appendChild (child: BaseSurface): void {
     this.mutableChildren.push(child);
     child.parentNode = this;
   }
 
-  insertBefore (child: ISurface, beforeChild: ISurface): void {
+  insertBefore (child: BaseSurface, beforeChild: BaseSurface): void {
     const index = this.mutableChildren.indexOf(beforeChild);
     this.mutableChildren.splice(index, 0, child);
     child.parentNode = this;
   }
 
-  removeChild (child: ISurface): void {
+  removeChild (child: BaseSurface): void {
     const index = this.mutableChildren.indexOf(child);
     this.mutableChildren.splice(index, 1);
     child.parentNode = undefined;
+  }
+
+  protected addEventListener (name: string, handler: (e: Event) => any) {
+    // noop
+  }
+
+  protected removeEventListener (name: string, handler: (e: Event) => any) {
+    // noop
+  }
+
+  emitEvent (e: Event) {
+    // noop
   }
 }
 

@@ -4,9 +4,9 @@ import {SurfaceComponentTree} from './SurfaceComponentTree';
 import {DOMSurface, DOMSurfaceRoot} from './DOMSurface';
 
 const componentTree = new SurfaceComponentTree();
-const reconciler = createSurfaceReconciler<DOMSurfaceRoot>(
+const reconciler = createSurfaceReconciler<DOMSurfaceRoot, DOMSurface>(
   componentTree,
-  (props, type, root) => new DOMSurface(props, type === 'text', root)
+  (type, root) => new DOMSurface(type === 'text', root)
 );
 
 export function render<P> (element: ReactElement<P>, target: HTMLElement) {

@@ -8,12 +8,19 @@ declare module JSX {
 // couldn't figure out how to use them as modules from global.d.ts
 // TODO the types below should be modules in src/lib/
 
+type SurfaceChild = string | React.ReactElement<SurfaceProps>;
 declare type SurfaceProps = {
-  key?: any,
-  ref?: (surf: any) => void,
-  style?: any,
-  children?: any, // ISurface | Array<ISurface>
-  hidden?: boolean
+  // React internals
+  key?: string | number;
+  ref?: (surf: any) => void;
+  children?: SurfaceChild | Array<SurfaceChild>
+  hidden?: boolean;
+
+  // Surface API
+  style?: any;
+  onClick?: (e: MouseEvent) => void;
+  onMouseEnter?: (e: MouseEvent) => void;
+  onMouseLeave?: (e: MouseEvent) => void;
 };
 
 declare interface ISurface {
