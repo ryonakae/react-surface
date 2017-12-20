@@ -2,8 +2,8 @@ import {BaseSurface} from './BaseSurface';
 
 const eventNameMap: {[key: string]: string} = {
   onClick: 'click',
-  onMouseEnter: 'onmouseenter',
-  onMouseLeave: 'onmouseenter'
+  onMouseEnter: 'mouseenter',
+  onMouseLeave: 'mouseleave'
 };
 
 export class DOMSurface extends BaseSurface {
