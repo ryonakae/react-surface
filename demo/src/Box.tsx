@@ -6,7 +6,10 @@ import * as Color from 'color';
 import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
 
 @observer
-export class Box extends React.Component {
+export class Box extends React.Component<{
+  size?: RenderProps['backgroundSize'],
+  position?: RenderProps['backgroundPosition']
+}> {
   @observable isAlternate = true;
   @observable isHovered = false;
   private keyUpEventHandler: any;
@@ -32,8 +35,21 @@ export class Box extends React.Component {
     const mergedStyle = Object.assign({}, ...[
       styles.box,
       this.isAlternate && styles.boxAlternate,
-      this.isHovered && styles.boxHovered
+      this.isHovered && styles.boxHovered,
+      {
+        backgroundSize: this.props.size,
+        backgroundPosition: this.props.position
+      }
     ]);
+
+    const message = JSON.stringify(
+      {
+        position: this.props.position,
+        size: this.props.size
+      },
+      null,
+      2
+    );
 
     return (
       <surface
@@ -41,7 +57,7 @@ export class Box extends React.Component {
         onMouseEnter={() => this.isHovered = true}
         onMouseLeave={() => this.isHovered = false}
       >
-        <text value={`Hello "${this.context.foo}" Worlds`}/>
+        <text value={message}/>
       </surface>
     );
   }
@@ -55,14 +71,15 @@ export class Box extends React.Component {
 
 const styles = SurfaceStyleSheet.create({
   box: {
-    padding: 10,
+    padding: 25,
+    paddingTop: 100,
+    paddingBottom: 100,
     flexDirection: 'column',
     backgroundColor: Color.rgb('#123012'),
     backgroundImage: require('./assets/hat.png'),
+    backgroundOpacity: 0.5,
     borderRadius: 5,
     marginBottom: 10,
-    overflow: 'hidden',
-    width: 100,
     text: {
       wordWrap: true
     }

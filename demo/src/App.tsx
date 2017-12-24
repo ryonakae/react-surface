@@ -4,15 +4,36 @@ import {observable} from 'mobx';
 import {observer} from 'mobx-react/custom';
 import {Box} from './Box';
 import * as PropTypes from 'prop-types';
-import {range} from 'lodash';
 import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
 import * as Color from 'color';
+
+const sizes = [
+  'cover',
+  'contain',
+  '50%',
+  '100%',
+  ['50%', '100%'],
+  ['100%', '50%']
+];
+
+const positions = [
+  [0, 0],
+  [50, 0],
+  [0, 50],
+  [50, 50],
+  ['0%', '100%'],
+  ['100%', '0%'],
+  ['50%', '50%'],
+  ['75%', '25%'],
+  ['25%', '75%'],
+];
 
 @observer
 export class App extends React.Component {
   @observable isBoxVisible = true;
   @observable isAlternate = false;
-  @observable boxCount = 1;
+  @observable sizeIndex = sizes.length;
+  @observable positionIndex = positions.length;
 
   private keyUpEventHandler: any;
 
@@ -42,7 +63,10 @@ export class App extends React.Component {
     return (
       <surface style={styles.app}>
         <surface style={styles.backLayer}/>
-        {range(0, this.boxCount).map((number) => <Box key={number}/>)}
+        <Box
+          size={sizes[this.sizeIndex % sizes.length]}
+          position={positions[this.positionIndex % positions.length]}
+        />
         <surface style={styles.frontLayer}/>
       </surface>
     );
@@ -55,12 +79,17 @@ export class App extends React.Component {
         e.preventDefault();
         break;
       case '+':
-        this.boxCount += 1;
+        if (e.shiftKey) {
+          this.sizeIndex += 1;
+        } else {
+          this.positionIndex += 1;
+        }
         break;
       case '-':
-        this.boxCount -= 1;
-        if (this.boxCount < 0) {
-          this.boxCount = 0;
+        if (e.shiftKey) {
+          this.sizeIndex -= 1;
+        } else {
+          this.positionIndex -= 1;
         }
         break;
     }
@@ -69,8 +98,8 @@ export class App extends React.Component {
 
 const styles = SurfaceStyleSheet.create({
   app: {
-    width: 500,
-    height: 300,
+    width: 700,
+    height: 500,
     backgroundColor: Color.rgb('#102030'),
     justifyContent: 'center',
     alignItems: 'center',
