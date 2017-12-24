@@ -61,13 +61,7 @@ export function createSurfaceReconciler (
     },
 
     createTextInstance (text: string, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
-      /*
-      const instance = createInstance('text');
-      instance.textValue = text;
-      instance.updateProps({});
-      componentTree.register(fiber, instance);
-      return instance;
-      */
+      // noop
     },
 
     now: () => now(),
