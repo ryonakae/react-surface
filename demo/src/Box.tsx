@@ -53,14 +53,16 @@ export class Box extends React.Component {
   }
 }
 
-
 const styles = SurfaceStyleSheet.create({
   box: {
     padding: 10,
     flexDirection: 'column',
     backgroundColor: Color.rgb('#123012'),
+    backgroundImage: require('./assets/hat.png'),
     borderRadius: 5,
     marginBottom: 10,
+    overflow: 'hidden',
+    width: 100,
     text: {
       wordWrap: true
     }
