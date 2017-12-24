@@ -10,11 +10,22 @@ declare module JSX {
 }
 
 type CSSProps = React.CSSProperties;
+type Percentage = string; // TODO can typescript enforce percentage strings?
 type SurfaceValue = number;
-type SurfaceValueP = SurfaceValue | string; // SurfaceValue with percentage support
+type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
 type SurfaceChild = React.ReactElement<SurfaceProps>;
 type SurfaceStyle = YogaProps & RenderProps;
 type SurfaceStyleDict = {[key: string]: SurfaceStyle};
+
+type Point = {
+  x: number,
+  y: number
+};
+
+type Size = {
+  width: number,
+  height: number
+};
 
 type YogaProps = {
   position?: 'absolute' | 'relative',
@@ -62,9 +73,9 @@ type RenderProps = {
   backgroundGradient?: any; // TODO type
   backgroundColor?: any;
   backgroundImage?: any;
-  backgroundImageOpacity?: SurfaceValue,
-  backgroundPosition?: [SurfaceValueP, SurfaceValueP];
-  backgroundSize?: 'auto' | 'cover' | 'contain' | SurfaceValueP | [SurfaceValueP, SurfaceValueP];
+  backgroundOpacity?: SurfaceValue,
+  backgroundPosition?: Array<SurfaceValueP>;
+  backgroundSize?: 'auto' | 'cover' | 'contain' | Percentage | Array<Percentage>;
 
   borderRadius?: number;
   borderSize?: number;

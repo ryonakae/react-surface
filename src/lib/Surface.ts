@@ -1,12 +1,12 @@
 import {Application, Container, Graphics, Text, TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
 import {colors} from './constants';
-import * as Color from 'color';
-import {Size} from './Bounds';
 import {takeYogaEdgeValues, yogaEventNameMap, yogaValueTransformers} from './YogaHelpers';
+import {createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
 const yoga = require('yoga-layout');
 
 export class Surface {
+  private isDestroyed: boolean;
   private mutableChildren: Surface[] = [];
   private pixiContainer: Container;
   private effectsContainer: Container;
@@ -54,6 +54,7 @@ export class Surface {
 
     this.yogaNode.reset();
     this.pixiContainer.destroy();
+    this.isDestroyed = true;
   }
 
   get children () {
@@ -180,8 +181,18 @@ export class Surface {
 
       if (style.backgroundImage !== undefined) {
         const sprite = Sprite.fromImage(style.backgroundImage);
+        // TODO use central loader instead
+        if (sprite.texture.baseTexture.isLoading) {
+          sprite.texture.baseTexture.on('loaded', () => {
+            if (!this.isDestroyed) {
+              this.updatePixi();
+            }
+          });
+        }
+
         sprite.mask = getMask();
-        sprite.alpha = style.backgroundImageOpacity || 1;
+        sprite.alpha = style.backgroundOpacity || 1;
+        resizeAndPositionSprite(sprite, layout, style.backgroundPosition, style.backgroundSize);
         this.effectsContainer.addChild(sprite);
       }
 
@@ -304,16 +315,4 @@ export class SurfaceRoot extends Surface {
     this.app.view.height = this.bounds.height;
     this.applyLayout();
   }
-}
-
-function createRectGraphics (size: Size, color: Color, borderRadius: number) {
-  const gfx = new Graphics();
-  gfx.beginFill(color.rgbNumber(), color.alpha());
-  if (borderRadius !== undefined) {
-    gfx.drawRoundedRect(0, 0, size.width, size.height, borderRadius);
-  } else {
-    gfx.drawRect(0, 0, size.width, size.height);
-  }
-  gfx.endFill();
-  return gfx;
 }
