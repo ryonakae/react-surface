@@ -3,9 +3,6 @@ import {Surface, SurfaceRoot} from './Surface';
 const createReconciler = require('react-reconciler');
 const now = require('performance-now');
 
-// Type shims
-// TODO replace with types from react-reconciler when it's available
-
 export function createSurfaceReconciler (
   root: SurfaceRoot,
   componentTree: SurfaceComponentTree,
@@ -25,17 +22,11 @@ export function createSurfaceReconciler (
     },
 
     prepareForCommit () {
-      // eventsEnabled = ReactBrowserEventEmitter.isEnabled();
-      // selectionInformation = ReactInputSelection.getSelectionInformation();
-      // ReactBrowserEventEmitter.setEnabled(false);
+      // noop
     },
 
     resetAfterCommit () {
       root.afterCommit();
-      // ReactInputSelection.restoreSelection(selectionInformation);
-      // selectionInformation = null;
-      // ReactBrowserEventEmitter.setEnabled(eventsEnabled);
-      // eventsEnabled = null;
     },
 
     createInstance (type: string, props: SurfaceProps, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
