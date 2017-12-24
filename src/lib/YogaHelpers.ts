@@ -1,7 +1,10 @@
 import {interaction} from 'pixi.js';
 const yoga = require('yoga-layout');
 
-export const yogaValueTransformers: {[key: string]: (value: string) => any} = {
+type YogaValueTransformerFn = (value: any) => any[];
+type YogaValueTransformer = {transform: YogaValueTransformerFn, functionName: string};
+
+const mixedYogaValueTransformers: {[key: string]: YogaValueTransformerFn | YogaValueTransformer} = {
   display (value: string) {
     switch (value) {
       case 'flex': return yoga.DISPLAY_FLEX;
@@ -9,10 +12,33 @@ export const yogaValueTransformers: {[key: string]: (value: string) => any} = {
     }
   },
 
-  position (value: string) {
-    switch (value) {
-      case 'relative': return yoga.POSITION_TYPE_RELATIVE;
-      case 'absolute': return yoga.POSITION_TYPE_ABSOLUTE;
+  top: {
+    functionName: 'setPosition',
+    transform: (value: number) => [yoga.EDGE_TOP, value]
+  },
+
+  right: {
+    functionName: 'setPosition',
+    transform: (value: number) => [yoga.EDGE_RIGHT, value]
+  },
+
+  bottom: {
+    functionName: 'setPosition',
+    transform: (value: number) => [yoga.EDGE_BOTTOM, value]
+  },
+
+  left: {
+    functionName: 'setPosition',
+    transform: (value: number) => [yoga.EDGE_LEFT, value]
+  },
+
+  position: {
+    functionName: 'setPositionType',
+    transform (value: string) {
+      switch (value) {
+        case 'relative': return [yoga.POSITION_TYPE_RELATIVE];
+        case 'absolute': return [yoga.POSITION_TYPE_ABSOLUTE];
+      }
     }
   },
 
@@ -63,6 +89,29 @@ export const yogaValueTransformers: {[key: string]: (value: string) => any} = {
     }
   }
 };
+
+export function getYogaValueTransformer (propertyName: string): YogaValueTransformer {
+  const transformer = mixedYogaValueTransformers[propertyName];
+  if (!transformer) {
+    return {
+      transform: (value: any) => [value],
+      functionName: getYogaNodeSetFunctionName(propertyName)
+    };
+  }
+
+  if (typeof transformer === 'function') {
+    return {
+      transform: (value) => [transformer(value)],
+      functionName: getYogaNodeSetFunctionName(propertyName)
+    };
+  }
+
+  return transformer;
+}
+
+export function getYogaNodeSetFunctionName (propertyName: string) {
+  return 'set' + propertyName[0].toUpperCase() + propertyName.substr(1);
+}
 
 export const yogaEventNameMap: {[key: string]: interaction.InteractionEventTypes} = {
   onClick: 'click',

@@ -1,7 +1,7 @@
 import {Application, Container, Graphics, Text, TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
 import {colors} from './constants';
-import {takeYogaEdgeValues, yogaEventNameMap, yogaValueTransformers} from './YogaHelpers';
+import {getYogaValueTransformer, takeYogaEdgeValues, yogaEventNameMap} from './YogaHelpers';
 import {createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
 const yoga = require('yoga-layout');
 
@@ -141,12 +141,14 @@ export class Surface {
     }
 
     for (const key in clonedProps) {
-      const setPropertyName = 'set' + key[0].toUpperCase() + key.substr(1);
-      const setFn = yogaNode[setPropertyName];
+      const transformer = getYogaValueTransformer(key);
+      const setFn = yogaNode[transformer.functionName];
       if (setFn) {
         const value = (clonedProps as any)[key];
-        const transformer = yogaValueTransformers[key];
-        setFn.call(yogaNode, transformer ? transformer(value) : value);
+        const args = transformer.transform(value);
+        setFn.apply(yogaNode, args);
+      } else {
+        console.warn('Did not find yoga setter for property', key);
       }
     }
   }

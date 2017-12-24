@@ -170,7 +170,7 @@ describe('Surface', () => {
   
   // Sanity checking Yoga/Pixi integration
 
-  it(`can render root surface with correct bounds`, () => {
+  it(`can customize size of root surface`, () => {
     const container = render(<surface style={{width: 150, height: 200}}/>);
     const layout = container.yogaNode.getComputedLayout();
     expect(layout.width).toBe(150);
@@ -205,5 +205,16 @@ describe('Surface', () => {
 
     expect([leftLayout.width, leftLayout.height]).toEqual([100, 50]);
     expect([rightLayout.width, rightLayout.height]).toEqual([100, 50]);
+  });
+
+  it(`can use absolute position`, () => {
+    const container = render(
+      <surface style={{width: 100, height: 100}}>
+        <surface style={{position: 'absolute', top: 10, right: 10, bottom: 10, left: 10}}/>
+      </surface>
+    );
+
+    const layout = container.children[0].yogaNode.getComputedLayout();
+    expect([layout.left, layout.top, layout.width, layout.height]).toEqual([10, 10, 80, 80]);
   });
 });
