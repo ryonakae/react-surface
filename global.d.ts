@@ -10,61 +10,65 @@ declare module JSX {
 }
 
 type CSSProps = React.CSSProperties;
-type SurfaceValue = React.CSSWideKeyword | number | string;
+type SurfaceValue = number;
+type SurfaceValueP = SurfaceValue | string; // SurfaceValue with percentage support
 type SurfaceChild = React.ReactElement<SurfaceProps>;
 type SurfaceStyle = YogaProps & RenderProps;
 type SurfaceStyleDict = {[key: string]: SurfaceStyle};
 
 type YogaProps = {
-  position?: React.CSSWideKeyword | 'absolute' | 'relative',
-  alignContent?: React.CSSWideKeyword | 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'stretch';
-  alignItems?: React.CSSWideKeyword | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
-  alignSelf?: React.CSSWideKeyword | 'auto' | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
+  position?: 'absolute' | 'relative',
+  alignContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'stretch';
+  alignItems?: 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
+  alignSelf?: 'auto' | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
   flex?: SurfaceValue;
-  flexAlign?: React.CSSWideKeyword | any;
+  flexAlign?: any;
   flexBasis?: SurfaceValue;
-  flexDirection?: React.CSSWideKeyword | 'row' | 'row-reverse' | 'column' | 'column-reverse';
-  flexFlow?: React.CSSWideKeyword | string;
+  flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
+  flexFlow?: string;
   flexGrow?: SurfaceValue;
-  flexItemAlign?: React.CSSWideKeyword | any;
-  flexLinePack?: React.CSSWideKeyword | any;
-  flexOrder?: React.CSSWideKeyword | any;
+  flexItemAlign?: any;
+  flexLinePack?: any;
+  flexOrder?: any;
   flexShrink?: SurfaceValue;
-  flexWrap?: React.CSSWideKeyword | 'nowrap' | 'wrap' | 'wrap-reverse';
-  top?: SurfaceValue;
-  right?: SurfaceValue;
-  bottom?: SurfaceValue;
-  left?: SurfaceValue;
-  width?: SurfaceValue;
-  height?: SurfaceValue;
-  minWidth?: SurfaceValue;
-  minHeight?: SurfaceValue;
-  maxWidth?: SurfaceValue;
-  maxHeight?: SurfaceValue;
-  justifyContent?: React.CSSWideKeyword | 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
-  margin?: SurfaceValue;
-  marginBottom?: SurfaceValue;
-  marginLeft?: SurfaceValue;
-  marginRight?: SurfaceValue;
-  marginTop?: SurfaceValue;
-  padding?: SurfaceValue;
-  paddingBottom?: SurfaceValue;
-  paddingLeft?: SurfaceValue;
-  paddingRight?: SurfaceValue;
-  paddingTop?: SurfaceValue;
-  overflow?: React.CSSWideKeyword | 'visible' | 'hidden' | 'scroll';
+  flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
+  top?: SurfaceValueP;
+  right?: SurfaceValueP;
+  bottom?: SurfaceValueP;
+  left?: SurfaceValueP;
+  width?: SurfaceValueP;
+  height?: SurfaceValueP;
+  minWidth?: SurfaceValueP;
+  minHeight?: SurfaceValueP;
+  maxWidth?: SurfaceValueP;
+  maxHeight?: SurfaceValueP;
+  justifyContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
+  margin?: SurfaceValueP;
+  marginBottom?: SurfaceValueP;
+  marginLeft?: SurfaceValueP;
+  marginRight?: SurfaceValueP;
+  marginTop?: SurfaceValueP;
+  padding?: SurfaceValueP;
+  paddingBottom?: SurfaceValueP;
+  paddingLeft?: SurfaceValueP;
+  paddingRight?: SurfaceValueP;
+  paddingTop?: SurfaceValueP;
+  overflow?: 'visible' | 'hidden' | 'scroll';
 };
 
 type RenderProps = {
   text?: PIXI.TextStyleOptions,
 
   backgroundGradient?: any; // TODO type
-  backgroundColor?: React.CSSWideKeyword | any;
-  backgroundImage?: React.CSSWideKeyword | any;
+  backgroundColor?: any;
+  backgroundImage?: any;
+  backgroundImageOpacity?: SurfaceValue,
+  backgroundPosition?: [SurfaceValueP, SurfaceValueP];
+  backgroundSize?: 'auto' | 'cover' | 'contain' | SurfaceValueP | [SurfaceValueP, SurfaceValueP];
 
-  borderRadius?: number,
-  borderSize?: number,
-  borderColor?: string,
+  borderRadius?: number;
+  borderSize?: number;
+  borderColor?: string;
 
   transform?: SurfaceTransform
 };

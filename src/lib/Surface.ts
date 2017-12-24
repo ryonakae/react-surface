@@ -1,5 +1,8 @@
-import {Application, Container, Graphics, Text, TextMetrics, TextStyle, interaction} from 'pixi.js';
+import {Application, Container, Graphics, Text, TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
+import {colors} from './constants';
+import * as Color from 'color';
+import {Size} from './Bounds';
 const yoga = require('yoga-layout');
 const {Node} = yoga;
 
@@ -223,25 +226,38 @@ export class Surface {
     const layout = this.yogaNode.getComputedLayout();
     this.pixiContainer.position.set(layout.left, layout.top);
 
-    // TODO don't clear, use lookup instead
     if (this.effectsContainer) {
+      // TODO don't clear, use lookup instead
       for (const child of this.effectsContainer.children) {
         this.effectsContainer.removeChild(child);
       }
 
-      const {backgroundColor, borderRadius}: SurfaceStyle = this.props.style || {};
+      const style: SurfaceStyle = this.props.style || {};
 
-      if (backgroundColor !== undefined) {
-        const graphics = new Graphics();
-        graphics.beginFill(backgroundColor.rgbNumber(), backgroundColor.alpha());
-        if (borderRadius !== undefined) {
-          graphics.drawRoundedRect(0, 0, layout.width, layout.height, borderRadius);
-        } else {
-          graphics.drawRect(0, 0, layout.width, layout.height);
+      let mask: Graphics;
+      const getMask = () => {
+        if (mask) {
+          return mask;
         }
-        graphics.endFill();
-        this.effectsContainer.addChild(graphics);
+        mask = createRectGraphics(layout, colors.transparent, style.borderRadius);
+        this.pixiContainer.addChild(mask);
+        return mask;
+      };
+
+      if (style.backgroundColor !== undefined) {
+        this.effectsContainer.addChild(
+          createRectGraphics(layout, style.backgroundColor, style.borderRadius)
+        );
       }
+
+      if (style.backgroundImage !== undefined) {
+        const sprite = Sprite.fromImage(style.backgroundImage);
+        sprite.mask = getMask();
+        sprite.alpha = style.backgroundImageOpacity || 1;
+        this.effectsContainer.addChild(sprite);
+      }
+
+      this.pixiContainer.mask = style.overflow === 'hidden' ? getMask() : undefined;
     }
 
     if (this.pixiText) {
@@ -388,4 +404,16 @@ function takeYogaEdgeValues (props: any, propertyNameBase: string): number[] {
     },
     initialValues
   );
+}
+
+function createRectGraphics (size: Size, color: Color, borderRadius: number) {
+  const gfx = new Graphics();
+  gfx.beginFill(color.rgbNumber(), color.alpha());
+  if (borderRadius !== undefined) {
+    gfx.drawRoundedRect(0, 0, size.width, size.height, borderRadius);
+  } else {
+    gfx.drawRect(0, 0, size.width, size.height);
+  }
+  gfx.endFill();
+  return gfx;
 }
