@@ -1,10 +1,10 @@
 import './assets/reset.css';
 import * as React from 'react';
-import {render as renderSurface} from 'react-surface';
 import {load as loadFonts} from 'webfontloader';
 import {fonts} from './assets/fonts';
 import {AppContainer as HotLoaderContainer} from 'react-hot-loader';
 import {App} from './App';
+import {render as renderSurface, SurfaceRenderMemory} from '../../src/lib/render';
 
 // Load global assets
 loadFonts({
@@ -34,7 +34,7 @@ const domNode = document.createElement('div');
 domNode.className = 'root';
 document.body.appendChild(domNode);
 
-const memory = {};
+const memory: SurfaceRenderMemory = {};
 function render (AppComponent: typeof App) {
   let composedApp = <AppComponent />;
   if (module.hot) {

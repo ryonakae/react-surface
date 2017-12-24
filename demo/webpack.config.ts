@@ -38,10 +38,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
 
     // Determine which extensions to lazy-load and how to look for sources
     resolve: {
-      extensions: ['.ts', '.tsx', '.js'],
-      alias: {
-        'react-surface': path.resolve(__dirname, '../src')
-      }
+      extensions: ['.ts', '.tsx', '.js']
     },
 
     // Teach webpack how to load various modules
