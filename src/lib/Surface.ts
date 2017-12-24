@@ -144,18 +144,18 @@ export class Surface {
     }
   }
 
-  get cascadedTextStyle () {
+  get cascadedTextStyle (): PIXI.TextStyleOptions {
     // TODO optimize: generate cascade on property changes instead of on request
     const parentStyle: any = this.parentNode ? {...this.parentNode.cascadedTextStyle} : {};
 
-    return new TextStyle({
+    return {
       ...parentStyle,
       ...this.props.style && this.props.style.text
-    });
+    };
   }
 
   measureText () {
-    const measurement = TextMetrics.measureText(this.pixiText.text, this.cascadedTextStyle);
+    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cascadedTextStyle));
     return {
       width: measurement.maxLineWidth,
       height: measurement.lines.length * measurement.lineHeight,
