@@ -5,24 +5,23 @@ import {observer} from 'mobx-react/custom';
 import {Box} from './Box';
 import * as PropTypes from 'prop-types';
 import {range} from 'lodash';
+import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
+import * as Color from 'color';
 
 @observer
-export class App extends React.Component<{log: boolean}> {
+export class App extends React.Component {
   @observable isBoxVisible = true;
   @observable isAlternate = false;
   @observable boxCount = 1;
 
   private keyUpEventHandler: any;
-  private node: ISurface;
 
   static childContextTypes = {
-    foo: PropTypes.string,
-    log: PropTypes.bool
+    foo: PropTypes.string
   };
 
   getChildContext () {
     return {
-      log: this.props.log,
       foo: this.isAlternate ?
         'Alternate context from App' :
         'Regular context from app'
@@ -30,44 +29,21 @@ export class App extends React.Component<{log: boolean}> {
   }
 
   componentWillMount () {
-    if (this.props.log) {
-      console.log('App will mount');
-    }
-
     this.keyUpEventHandler = this.onKeyUp.bind(this);
     window.addEventListener('keyup', this.keyUpEventHandler);
   }
 
-  componentWillUpdate () {
-    if (this.props.log) {
-      console.log('App will update');
-    }
-  }
-
-  componentDidUpdate () {
-    if (this.props.log) {
-      console.log('App did update');
-    }
-  }
-
-  componentDidMount () {
-    if (this.props.log) {
-      console.log('App did mount');
-    }
-  }
-
   componentWillUnmount () {
     window.removeEventListener('keyup', this.keyUpEventHandler);
-    if (this.props.log) {
-      console.log('App unmounted');
-    }
   }
 
   render () {
     const throwAway = this.isAlternate; // tslint:disable-line
     return (
-      <surface ref={(node: any) => this.node = node} style={styles.app}>
+      <surface style={styles.app}>
+        <surface style={styles.backLayer}/>
         {range(0, this.boxCount).map((number) => <Box key={number}/>)}
+        <surface style={styles.frontLayer}/>
       </surface>
     );
   }
@@ -91,14 +67,30 @@ export class App extends React.Component<{log: boolean}> {
   }
 }
 
-
-const styles: any = {
+const styles = SurfaceStyleSheet.create({
   app: {
-    flex: 1,
-    padding: '20vw 20vw',
+    width: 500,
+    height: 300,
+    backgroundColor: Color.rgb('#102030'),
     justifyContent: 'center',
     alignItems: 'center',
-    color: 'white',
-    fontFamily: fonts.Default
+    borderRadius: 15,
+    text: {
+      fill: Color.rgb('#ffffff').rgbNumber(),
+      fontSize: 14,
+      fontFamily: fonts.Default
+    }
+  },
+
+  backLayer: {
+    backgroundColor: Color.rgb('#5498c4').alpha(0.5),
+    position: 'absolute',
+    top: 10, right: 10, bottom: 10, left: 10
+  },
+
+  frontLayer: {
+    backgroundColor: Color.rgb('#629c36').alpha(0.5),
+    position: 'absolute',
+    top: 35, right: 35, bottom: 35, left: 35
   }
-};
+});

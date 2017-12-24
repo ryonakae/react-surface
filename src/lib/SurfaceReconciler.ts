@@ -1,168 +1,135 @@
-import * as React from 'react';
 import {SurfaceComponentTree} from './SurfaceComponentTree';
-import {isDirectTextChildProps} from './isDirectTextChildProps';
+import {Surface, SurfaceRoot} from './Surface';
 const createReconciler = require('react-reconciler');
 const now = require('performance-now');
 
 // Type shims
 // TODO replace with types from react-reconciler when it's available
 
-type HostContext = {};
-
-export type ReactContainer<TRoot> = {
-  containerInfo: TRoot
-};
-
-export type ReactReconciler<TRoot extends ISurfaceRoot> = {
-  injectIntoDevTools (config: any): void;
-  createContainer (root: TRoot): ReactContainer<TRoot>;
-  updateContainer<P> (element: React.ReactElement<P>, container: ReactContainer<TRoot>): void;
-};
-
-export function createSurfaceReconciler<TRoot extends ISurfaceRoot, TSurface extends ISurface> (
+export function createSurfaceReconciler (
+  root: SurfaceRoot,
   componentTree: SurfaceComponentTree,
-  createInstance: (type: string, root: TRoot) => TSurface
-): ReactReconciler<TRoot> {
-  return createReconciler(
-    logMonkeyPatchObject(['SurfaceReconciler'], {
-      getRootHostContext (root: TRoot): HostContext {
-        return {};
+  createInstance: (type: string) => Surface
+): ReactReconciler<SurfaceRoot> {
+  return createReconciler({
+    getRootHostContext (root: SurfaceRoot): HostContext {
+      return {};
+    },
+
+    getChildHostContext (parentContext: HostContext, type: string): HostContext {
+      return {};
+    },
+
+    getPublicInstance (instance: Surface) {
+      return instance;
+    },
+
+    prepareForCommit () {
+      // eventsEnabled = ReactBrowserEventEmitter.isEnabled();
+      // selectionInformation = ReactInputSelection.getSelectionInformation();
+      // ReactBrowserEventEmitter.setEnabled(false);
+    },
+
+    resetAfterCommit () {
+      root.afterCommit();
+      // ReactInputSelection.restoreSelection(selectionInformation);
+      // selectionInformation = null;
+      // ReactBrowserEventEmitter.setEnabled(eventsEnabled);
+      // eventsEnabled = null;
+    },
+
+    createInstance (type: string, props: SurfaceProps, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
+      const instance = createInstance(type);
+      instance.updateProps(props);
+      componentTree.register(fiber, instance);
+      return instance;
+    },
+
+    appendInitialChild (parentInstance: Surface, child: Surface) {
+      parentInstance.appendChild(child);
+    },
+
+    finalizeInitialChildren (instance: Surface, type: string, props: SurfaceProps, root: SurfaceRoot) {
+      return false;
+    },
+
+    prepareUpdate (
+      instance: Surface, type: string, oldProps: SurfaceProps,
+      newProps: SurfaceProps, root: SurfaceRoot, context: HostContext
+    ) {
+      // TODO optimize: diff props
+      return newProps;
+    },
+
+    shouldSetTextContent (type: string, props: SurfaceProps): boolean {
+      return false;
+    },
+
+    shouldDeprioritizeSubtree (type: string, props: SurfaceProps): boolean {
+      return !!props.hidden;
+    },
+
+    createTextInstance (text: string, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
+      /*
+      const instance = createInstance('text');
+      instance.textValue = text;
+      instance.updateProps({});
+      componentTree.register(fiber, instance);
+      return instance;
+      */
+    },
+
+    now: () => now(),
+
+    useSyncScheduling: true,
+
+    mutation: {
+      commitMount (instance: Surface, type: string, newProps: SurfaceProps, fiber: FiberNode) {
+
       },
 
-      getChildHostContext (parentContext: HostContext, type: string): HostContext {
-        return {};
+      commitUpdate (
+        instance: Surface, payload: SurfaceProps, type: string,
+        oldProps: SurfaceProps, newProps: SurfaceProps, fiber: FiberNode
+      ) {
+        instance.updateProps(payload);
       },
 
-      getPublicInstance (instance: TSurface) {
-        return instance;
+      resetTextContent (instance: Surface) {
+        instance.textValue = '';
       },
 
-      prepareForCommit () {
-        // eventsEnabled = ReactBrowserEventEmitter.isEnabled();
-        // selectionInformation = ReactInputSelection.getSelectionInformation();
-        // ReactBrowserEventEmitter.setEnabled(false);
+      commitTextUpdate (element: Surface, oldText: string, newText: string) {
+        element.textValue = newText;
       },
 
-      resetAfterCommit () {
-        // ReactInputSelection.restoreSelection(selectionInformation);
-        // selectionInformation = null;
-        // ReactBrowserEventEmitter.setEnabled(eventsEnabled);
-        // eventsEnabled = null;
-      },
-
-      createInstance (type: string, props: SurfaceProps, root: TRoot, context: HostContext, fiber: FiberNode) {
-        const instance = createInstance(type, root);
-        instance.updateProps(props);
-        componentTree.register(fiber, instance);
-        return instance;
-      },
-
-      appendInitialChild (parentInstance: TSurface, child: TSurface) {
+      appendChild (parentInstance: Surface, child: Surface) {
         parentInstance.appendChild(child);
       },
 
-      finalizeInitialChildren (instance: TSurface, type: string, props: SurfaceProps, root: TRoot) {
-        return false;
+      appendChildToContainer (container: SurfaceRoot, child: Surface) {
+        container.appendChild(child);
       },
 
-      prepareUpdate (
-        instance: TSurface, type: string, oldProps: SurfaceProps,
-        newProps: SurfaceProps, root: TRoot, context: HostContext
-      ) {
-        return newProps;
+      insertBefore (parentInstance: Surface, child: Surface, beforeChild: Surface) {
+        parentInstance.insertBefore(child, beforeChild);
       },
 
-      shouldSetTextContent (type: string, props: SurfaceProps): boolean {
-        return isDirectTextChildProps(props);
+      insertInContainerBefore (container: SurfaceRoot, child: Surface, beforeChild: Surface,) {
+        container.insertBefore(child, beforeChild);
       },
 
-      shouldDeprioritizeSubtree (type: string, props: SurfaceProps): boolean {
-        return !!props.hidden;
+      removeChild (parentInstance: Surface, child: Surface) {
+        parentInstance.removeChild(child);
+        componentTree.release(child);
+        child.destroy();
       },
 
-      createTextInstance (text: string, root: TRoot, context: HostContext, fiber: FiberNode) {
-        const instance = createInstance('text', root);
-        instance.textValue = text;
-        componentTree.register(fiber, instance);
-        return instance;
+      removeChildFromContainer (container: SurfaceRoot, child: Surface) {
+        container.removeChild(child);
+        componentTree.release(child);
+        child.destroy();
       },
-
-      now: () => now(),
-
-      useSyncScheduling: true,
-
-      mutation: {
-        commitMount (instance: TSurface, type: string, newProps: SurfaceProps, fiber: FiberNode) {
-
-        },
-
-        commitUpdate (
-          instance: TSurface, payload: SurfaceProps, type: string,
-          oldProps: SurfaceProps, newProps: SurfaceProps, fiber: FiberNode
-        ) {
-          instance.updateProps(payload);
-        },
-
-        resetTextContent (instance: TSurface) {
-          instance.textValue = '';
-        },
-
-        commitTextUpdate (element: TSurface, oldText: string, newText: string) {
-          element.textValue = newText;
-        },
-
-        appendChild (parentInstance: TSurface, child: TSurface) {
-          parentInstance.appendChild(child);
-        },
-
-        appendChildToContainer (container: TRoot, child: TSurface) {
-          container.appendChild(child);
-        },
-
-        insertBefore (parentInstance: TSurface, child: TSurface, beforeChild: TSurface) {
-          parentInstance.insertBefore(child, beforeChild);
-        },
-
-        insertInContainerBefore (container: TRoot, child: TSurface, beforeChild: TSurface,) {
-          container.insertBefore(child, beforeChild);
-        },
-
-        removeChild (parentInstance: TSurface, child: TSurface) {
-          parentInstance.removeChild(child);
-          componentTree.release(child);
-        },
-
-        removeChildFromContainer (container: TRoot, child: TSurface) {
-          container.removeChild(child);
-          componentTree.release(child);
-        },
-      }
-    })
-  );
-}
-
-function logMonkeyPatchObject (path: string[] = [], obj: any, recurse: boolean = true) {
-  for (const key in obj) {
-    if (key === 'now') {
-      continue;
     }
-    if (typeof obj[key] === 'function') {
-      logMonkeyPatchFunction(obj, key, path);
-    } else if (recurse && typeof obj[key] === 'object') {
-      logMonkeyPatchObject(path.concat(key), obj[key], true);
-    }
-  }
-
-  return obj;
-}
-
-function logMonkeyPatchFunction (obj: any, key: string, path: string[]) {
-  const originalFunction = obj[key];
-  const functionId = path.concat(key).join('.');
-  obj[key] = function () {
-    const cleanArgs = [...arguments];
-    const printableArgs = cleanArgs.filter((arg) => typeof arg === 'string');
-    console.info(functionId, ...printableArgs);
-    return originalFunction(...cleanArgs);
-  };
+  });
 }

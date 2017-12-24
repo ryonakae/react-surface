@@ -1,33 +1,48 @@
-export class SurfaceComponentTree {
-  private fibersBySurfaceId: {[key: string]: FiberNode} = {};
-  private surfacesByNodeId: {[key: string]: ISurface} = {};
+import {Surface} from './Surface';
 
-  register (fiber: FiberNode, instance: ISurface) {
+export class SurfaceComponentTree {
+  private idCounter = 0;
+  private fibersBySurfaceId: {[key: string]: FiberNode} = {};
+  private surfacesByNodeId: {[key: string]: Surface} = {};
+
+  getNexSurfaceId () {
+    const nextId = this.idCounter;
+    this.idCounter += 1;
+    return nextId;
+  }
+
+  register (fiber: FiberNode, instance: Surface) {
+    instance.id = this.getNexSurfaceId();
     this.fibersBySurfaceId[instance.id] = fiber;
     this.surfacesByNodeId[fiber.id] = instance;
   }
 
-  release (instance: ISurface) {
+  release (instance: Surface) {
     const fiber = this.findFiberBySurface(instance);
-    delete this.fibersBySurfaceId[instance.id];
-    delete this.surfacesByNodeId[fiber.id];
+    if (fiber) {
+      delete this.fibersBySurfaceId[instance.id];
+      delete this.surfacesByNodeId[fiber.id];
+    }
   }
 
   findFiberByHostInstance (hostInstance: any): FiberNode {
-    // HACK linear search is really suboptimal
-    return Object.values(this.surfacesByNodeId)
+    // TODO optimize: don't do linear search
+    const surface = Object.values(this.surfacesByNodeId)
       .find((surface) => surface.hostInstance === hostInstance);
+    if (surface) {
+      return this.findFiberBySurface(surface);
+    }
   }
 
   findHostInstanceByFiber (fiber: FiberNode): any {
     return this.findSurfaceByFiber(fiber).hostInstance;
   }
 
-  findFiberBySurface (instance: ISurface): FiberNode {
+  findFiberBySurface (instance: Surface): FiberNode {
     return this.fibersBySurfaceId[instance.id];
   }
 
-  findSurfaceByFiber (fiber: FiberNode): ISurface {
+  findSurfaceByFiber (fiber: FiberNode): Surface {
     return this.surfacesByNodeId[fiber.id];
   }
 }

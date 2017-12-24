@@ -1,27 +1,38 @@
 import {ReactElement} from 'react';
 import {createSurfaceReconciler} from './SurfaceReconciler';
 import {SurfaceComponentTree} from './SurfaceComponentTree';
-import {DOMSurface, DOMSurfaceRoot} from './DOMSurface';
+import {Surface, SurfaceRoot} from './Surface';
 
-const componentTree = new SurfaceComponentTree();
-const reconciler = createSurfaceReconciler<DOMSurfaceRoot, DOMSurface>(
-  componentTree,
-  (type, root) => new DOMSurface(type === 'text', root)
-);
+export type SurfaceRenderMemory = {
+  tree?: SurfaceComponentTree,
+  root?: SurfaceRoot
+  container?: ReactContainer<SurfaceRoot>
+};
 
-export function render<P> (element: ReactElement<P>, target: HTMLElement) {
+export function render<P> (element: ReactElement<P>, target: HTMLElement, memory: SurfaceRenderMemory = {}) {
+  if (!memory.tree) {
+    memory.tree = new SurfaceComponentTree();
+    memory.root = new SurfaceRoot(target);
+  }
+
+  const reconciler = createSurfaceReconciler(
+    memory.root,
+    memory.tree,
+    (type) => new Surface(type === 'text')
+  );
+
   reconciler.injectIntoDevTools({
     bundleType: 1, // 0 for PROD, 1 for DEV
     version: '0.1.0', // version for your renderer
     rendererPackageName: 'react-surface', // package name
-    findFiberByHostInstance: componentTree.findFiberByHostInstance.bind(componentTree)
+    findFiberByHostInstance: memory.tree.findFiberByHostInstance.bind(memory.tree)
   });
 
-  const rootContainer = (target as any)._reactRootContainer || (
-    (target as any)._reactRootContainer = reconciler.createContainer(new DOMSurfaceRoot(target))
-  );
+  if (!memory.container) {
+    memory.container = reconciler.createContainer(memory.root);
+  }
 
-  reconciler.updateContainer(element, rootContainer);
+  reconciler.updateContainer(element, memory.container);
 
-  return rootContainer.containerInfo;
+  return memory.container;
 }

@@ -1,29 +1,24 @@
 import * as React from 'react';
-import {createSurfaceReconciler, ReactContainer, ReactReconciler} from './SurfaceReconciler';
-import {SurfaceComponentTree} from './SurfaceComponentTree';
-import {BaseSurfaceRoot} from './BaseSurface';
-import {TestSurface} from './TestSurface';
+import {render as renderSurface, SurfaceRenderMemory} from './render';
 
-describe('BaseSurface', () => {
-  let reconciler: ReactReconciler<BaseSurfaceRoot>;
-  let container: ReactContainer<BaseSurfaceRoot>;
+describe('Surface', () => {
+  let memory: SurfaceRenderMemory = {};
+  let domNode: HTMLDivElement;
 
   function render (element: React.ReactElement<{}>) {
-    reconciler.updateContainer(element, container);
+    const container = renderSurface(element, domNode, memory);
     return container.containerInfo.children[0];
   }
 
   beforeEach(() => {
-    const tree = new SurfaceComponentTree();
-    reconciler = createSurfaceReconciler<BaseSurfaceRoot, TestSurface>(tree, () => new TestSurface());
-    container = reconciler.createContainer(new BaseSurfaceRoot());
-
-    this.originalConsoleInfo = console.info;
-    console.info = (): null => null;
+    domNode = document.createElement('div');
+    domNode.style.width = '800px';
+    domNode.style.height = '600px';
   });
 
   afterEach(() => {
-    console.info = this.originalConsoleInfo;
+    memory.root.destroy();
+    memory = {};
   });
 
   // Surfaces
@@ -119,7 +114,7 @@ describe('BaseSurface', () => {
       </surface>
     );
 
-    const [beforeOne, beforeTwo] = container.children;
+    const beforeTwo = container.children[1];
 
     render(
       <surface>
@@ -127,7 +122,7 @@ describe('BaseSurface', () => {
       </surface>
     );
 
-    const [afterTwo] = container.children;
+    const afterTwo = container.children[0];
 
     expect(container.children.length).toBe(1);
     expect(afterTwo).toBe(beforeTwo);
@@ -135,95 +130,15 @@ describe('BaseSurface', () => {
 
   // Texts
 
-  it(`can initialize text content`, () => {
-    const container = render(<surface>Hello</surface>);
+  it(`can render text`, () => {
+    const container = render(<text value={'Hello'}/>);
     expect(container.textValue).toEqual('Hello');
   });
 
-  it(`can set text content`, () => {
-    const container = render(<surface>Hello</surface>);
-    render(<surface>Changed</surface>);
-    expect(container.textValue).toEqual('Changed');
-  });
-
-  it(`can insert text`, () => {
-    const container = render(
-      <surface>
-        <surface key="left"/>
-        <surface key="right"/>
-      </surface>
-    );
-
-    const [leftBefore, rightBefore] = container.children.slice();
-
-    render(
-      <surface>
-        <surface key="left"/>
-        Inserted
-        <surface key="right"/>
-      </surface>
-    );
-
-    expect(container.children.length).toBe(3);
-    const [leftAfter, middleAfter, rightAfter] = container.children.slice();
-
-    expect(leftAfter).toBe(leftBefore);
-    expect(rightAfter).toBe(rightBefore);
-
-    expect([leftBefore, rightBefore]).not.toContain(middleAfter);
-    expect(middleAfter.textValue).toBe('Inserted');
-  });
-
   it(`can update text`, () => {
-    const container = render(
-      <surface>
-        <surface/>
-        Original
-        <surface/>
-      </surface>
-    );
-
-    const [leftBefore, middleBefore, rightBefore] = container.children.slice();
-
-    render(
-      <surface>
-        <surface/>
-        Updated
-        <surface/>
-      </surface>
-    );
-
-    const [leftAfter, middleAfter, rightAfter] = container.children.slice();
-
-    expect(leftAfter).toBe(leftBefore);
-    expect(middleAfter).toBe(middleBefore);
-    expect(rightAfter).toBe(rightBefore);
-    expect(middleAfter.textValue).toBe('Updated');
-  });
-
-  it(`can remove text`, () => {
-    const container = render(
-      <surface>
-        <surface key="left"/>
-        Text
-        <surface key="right"/>
-      </surface>
-    );
-
-    const [leftBefore, middleBefore, rightBefore] = container.children.slice();
-
-    render(
-      <surface>
-        <surface key="left"/>
-        <surface key="right"/>
-      </surface>
-    );
-
-    const [leftAfter, rightAfter] = container.children.slice();
-
-    expect(container.children.length).toBe(2);
-    expect(leftAfter).toBe(leftBefore);
-    expect(rightAfter).toBe(rightBefore);
+    const container = render(<text value={'Hello'}/>);
+    render(<text value={'Changed'}/>);
+    expect(container.textValue).toEqual('Changed');
   });
 
   // Events
@@ -231,7 +146,7 @@ describe('BaseSurface', () => {
   it(`can add event handler`, () => {
     let triggered = false;
     const container = render(<surface onClick={() => triggered = true}/>);
-    container.emitEvent(new Event('onClick'));
+    container.emitEvent('onClick');
     expect(triggered).toBe(true);
   });
 
@@ -240,7 +155,7 @@ describe('BaseSurface', () => {
     let second = false;
     const container = render(<surface onClick={() => first = true}/>);
     render(<surface onClick={() => second = true}/>);
-    container.emitEvent(new Event('onClick'));
+    container.emitEvent('onClick');
     expect(first).toBe(false);
     expect(second).toBe(true);
   });
@@ -249,7 +164,46 @@ describe('BaseSurface', () => {
     let triggered = false;
     const container = render(<surface onClick={() => triggered = true}/>);
     render(<surface/>);
-    container.emitEvent(new Event('onClick'));
+    container.emitEvent('onClick');
     expect(triggered).toBe(false);
+  });
+  
+  // Sanity checking Yoga/Pixi integration
+
+  it(`can render root surface with correct bounds`, () => {
+    const container = render(<surface style={{width: 150, height: 200}}/>);
+    const layout = container.yogaNode.getComputedLayout();
+    expect(layout.width).toBe(150);
+    expect(layout.height).toBe(200);
+  });
+
+  it(`can flex in row`, () => {
+    const container = render(
+      <surface style={{width: 100, height: 100, flexDirection: 'row'}}>
+        <surface style={{flex: 1}}/>
+        <surface style={{flex: 1}}/>
+      </surface>
+    );
+
+    const leftLayout = container.children[0].yogaNode.getComputedLayout();
+    const rightLayout = container.children[1].yogaNode.getComputedLayout();
+
+    expect([leftLayout.width, leftLayout.height]).toEqual([50, 100]);
+    expect([rightLayout.width, rightLayout.height]).toEqual([50, 100]);
+  });
+
+  it(`can flex in column`, () => {
+    const container = render(
+      <surface style={{width: 100, height: 100, flexDirection: 'column'}}>
+        <surface style={{flex: 1}}/>
+        <surface style={{flex: 1}}/>
+      </surface>
+    );
+
+    const leftLayout = container.children[0].yogaNode.getComputedLayout();
+    const rightLayout = container.children[1].yogaNode.getComputedLayout();
+
+    expect([leftLayout.width, leftLayout.height]).toEqual([100, 50]);
+    expect([rightLayout.width, rightLayout.height]).toEqual([100, 50]);
   });
 });

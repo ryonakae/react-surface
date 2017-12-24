@@ -1,9 +1,10 @@
 import {uniq} from 'lodash';
+import {interaction} from 'pixi.js';
 
 export function diffEventProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {
-  const removed: {[key: string]: (e: Event) => any} = {};
-  const added: {[key: string]: (e: Event) => any} = {};
-  const changed: {[key: string]: [(e: Event) => any, (e: Event) => any]} = {};
+  const removed: {[key: string]: (e: interaction.InteractionEvent) => any} = {};
+  const added: {[key: string]: (e: interaction.InteractionEvent) => any} = {};
+  const changed: {[key: string]: [(e: interaction.InteractionEvent) => any, (e: interaction.InteractionEvent) => any]} = {};
 
   // HACK suboptimal, should get list of known event names from a registry
   const eventNames = uniq(Object.keys(prevProps).concat(Object.keys(nextProps)))

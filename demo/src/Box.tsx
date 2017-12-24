@@ -2,15 +2,17 @@ import * as React from 'react';
 import {observable} from 'mobx';
 import {observer} from 'mobx-react/custom';
 import * as PropTypes from 'prop-types';
+import * as Color from 'color';
+import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
 
 @observer
 export class Box extends React.Component {
   @observable isAlternate = true;
+  @observable isHovered = false;
   private keyUpEventHandler: any;
 
   static contextTypes = {
-    foo: PropTypes.string,
-    log: PropTypes.bool
+    foo: PropTypes.string
   };
 
   shouldComponentUpdate () {
@@ -18,44 +20,28 @@ export class Box extends React.Component {
   }
 
   componentWillMount () {
-    if (this.context.log) {
-      console.log('Box will mount');
-    }
-
     this.keyUpEventHandler = this.onKeyUp.bind(this);
     window.addEventListener('keyup', this.keyUpEventHandler);
   }
 
-  componentWillUpdate () {
-    if (this.context.log) {
-      console.log('Box will update');
-    }
-  }
-
-  componentDidUpdate () {
-    if (this.context.log) {
-      console.log('Box did update');
-    }
-  }
-
-  componentDidMount () {
-    if (this.context.log) {
-      console.log('Box did mount');
-    }
-  }
-
   componentWillUnmount () {
     window.removeEventListener('keyup', this.keyUpEventHandler);
-    if (this.context.log) {
-      console.log('Box unmounted');
-    }
   }
 
   render () {
-    const mergedStyle = Object.assign({}, ...[styles.box, this.isAlternate && styles.boxAlternate]);
+    const mergedStyle = Object.assign({}, ...[
+      styles.box,
+      this.isAlternate && styles.boxAlternate,
+      this.isHovered && styles.boxHovered
+    ]);
+
     return (
-      <surface style={mergedStyle}>
-        Hello "{this.context.foo}" Worlds
+      <surface
+        style={mergedStyle}
+        onMouseEnter={() => this.isHovered = true}
+        onMouseLeave={() => this.isHovered = false}
+      >
+        <text value={`Hello "${this.context.foo}" Worlds`}/>
       </surface>
     );
   }
@@ -63,20 +49,28 @@ export class Box extends React.Component {
   onKeyUp (e: KeyboardEvent) {
     if (e.key === ' ') {
       this.isAlternate = !this.isAlternate;
-      if (this.context.log) {
-        console.log('Toggled alternate to', this.isAlternate);
-      }
     }
   }
 }
 
-const styles = {
+
+const styles = SurfaceStyleSheet.create({
   box: {
-    background: 'blue',
-    marginBottom: 10
+    padding: 10,
+    flexDirection: 'column',
+    backgroundColor: Color.rgb('#123012'),
+    borderRadius: 5,
+    marginBottom: 10,
+    text: {
+      wordWrap: true
+    }
   },
 
   boxAlternate: {
-    background: 'green'
+    backgroundColor: Color.rgb('#321321')
+  },
+
+  boxHovered: {
+    backgroundColor: Color.rgb('#999222')
   }
-};
+});
