@@ -10,6 +10,7 @@ declare module JSX {
 }
 
 type CSSProps = React.CSSProperties;
+type Color = any; // TODO use 'color' package
 type Percentage = string; // TODO can typescript enforce percentage strings?
 type SurfaceValue = number;
 type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
@@ -64,6 +65,11 @@ type YogaProps = {
   paddingLeft?: SurfaceValueP;
   paddingRight?: SurfaceValueP;
   paddingTop?: SurfaceValueP;
+  border?: SurfaceValueP;
+  borderTop?: SurfaceValueP;
+  borderRight?: SurfaceValueP;
+  borderBottom?: SurfaceValueP;
+  borderLeft?: SurfaceValueP;
   overflow?: 'visible' | 'hidden' | 'scroll';
 };
 
@@ -71,15 +77,18 @@ type RenderProps = {
   text?: PIXI.TextStyleOptions,
 
   backgroundGradient?: any; // TODO type
-  backgroundColor?: any;
+  backgroundColor?: Color;
   backgroundImage?: any;
   backgroundOpacity?: SurfaceValue,
   backgroundPosition?: Array<SurfaceValueP>;
   backgroundSize?: 'auto' | 'cover' | 'contain' | Percentage | Array<Percentage>;
 
   borderRadius?: number;
-  borderSize?: number;
-  borderColor?: string;
+  borderColor?: Color;
+  borderColorTop?: Color;
+  borderColorRight?: Color;
+  borderColorBottom?: Color;
+  borderColorLeft?: Color;
 
   transform?: SurfaceTransform
 };

@@ -1,8 +1,9 @@
 import {Application, Container, Graphics, Text, TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
-import {colors} from './constants';
+import {commonColors} from './constants';
 import {getYogaValueTransformer, takeYogaEdgeValues, yogaEventNameMap} from './YogaHelpers';
-import {createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
+import {createBorderGraphics, createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
+import * as Color from 'color';
 const yoga = require('yoga-layout');
 
 export class Surface {
@@ -130,6 +131,11 @@ export class Surface {
       yogaNode.markDirty();
     }
 
+    const borderValues = takeYogaEdgeValues(clonedProps, 'border');
+    for (const edge in borderValues) {
+      yogaNode.setBorder(edge, borderValues[edge]);
+    }
+
     const paddingValues = takeYogaEdgeValues(clonedProps, 'padding');
     for (const edge in paddingValues) {
       yogaNode.setPadding(edge, paddingValues[edge]);
@@ -147,8 +153,6 @@ export class Surface {
         const value = (clonedProps as any)[key];
         const args = transformer.transform(value);
         setFn.apply(yogaNode, args);
-      } else {
-        console.warn('Did not find yoga setter for property', key);
       }
     }
   }
@@ -163,15 +167,15 @@ export class Surface {
         this.effectsContainer.removeChild(child);
       }
 
-      const style: SurfaceStyle = this.props.style || {};
+      const style: SurfaceStyle = {...this.props.style};
 
       let mask: Graphics;
       const getMask = () => {
         if (mask) {
           return mask;
         }
-        mask = createRectGraphics(layout, colors.transparent, style.borderRadius);
-        this.pixiContainer.addChild(mask);
+        mask = createRectGraphics(layout, commonColors.transparent, style.borderRadius);
+        this.effectsContainer.addChild(mask);
         return mask;
       };
 
@@ -196,6 +200,20 @@ export class Surface {
         sprite.alpha = style.backgroundOpacity || 1;
         resizeAndPositionSprite(sprite, layout, style.backgroundPosition, style.backgroundSize);
         this.effectsContainer.addChild(sprite);
+      }
+
+      const borderValues = takeYogaEdgeValues(style, 'border', true) as number[];
+      const hasBorder = borderValues.find((width) => width > 0);
+      if (hasBorder) {
+        const borderColorValues = takeYogaEdgeValues(style, 'borderColor', true) as Color[];
+        this.effectsContainer.addChild(
+          createBorderGraphics(
+            layout,
+            borderValues,
+            style.borderRadius,
+            borderColorValues
+          )
+        );
       }
 
       this.pixiContainer.mask = style.overflow === 'hidden' ? getMask() : undefined;

@@ -124,17 +124,18 @@ export const yogaEventNameMap: {[key: string]: interaction.InteractionEventTypes
 
 const edgeNames = ['Top', 'Right', 'Bottom', 'Left'];
 const edgeValues = [yoga.EDGE_TOP, yoga.EDGE_RIGHT, yoga.EDGE_BOTTOM, yoga.EDGE_LEFT];
-export function takeYogaEdgeValues (props: any, propertyNameBase: string): number[] {
-  const baseValues: number[] | number = props[propertyNameBase];
+export function takeYogaEdgeValues (props: any, propertyNameBase: string, getArray: boolean = false) {
+  const baseValue: any = props.hasOwnProperty(propertyNameBase) ? props[propertyNameBase] : 0;
+  delete props[propertyNameBase];
 
-  let initialValues;
-  if (baseValues === undefined) {
-    initialValues = [0, 0, 0, 0];
-  } else if (typeof baseValues === 'number') {
-    initialValues = [baseValues, baseValues, baseValues, baseValues];
-  } else {
-    initialValues = baseValues;
-  }
+  const initialValues = getArray ?
+    [baseValue, baseValue, baseValue, baseValue] :
+    {
+      [yoga.EDGE_TOP]: baseValue,
+      [yoga.EDGE_RIGHT]: baseValue,
+      [yoga.EDGE_BOTTOM]: baseValue,
+      [yoga.EDGE_LEFT]: baseValue
+    };
 
   return edgeNames.reduce(
     (values, cornerName, index) => {
@@ -142,7 +143,11 @@ export function takeYogaEdgeValues (props: any, propertyNameBase: string): numbe
       if (props.hasOwnProperty(propertyName)) {
         const value = props[propertyName];
         delete props[propertyName];
-        values[edgeValues[index]] = value;
+        if (getArray) {
+          values[index] = value;
+        } else {
+          values[edgeValues[index]] = value;
+        }
       }
       return values;
     },
