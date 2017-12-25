@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {fonts} from './assets/fonts';
-import {observable} from 'mobx';
+import {observable, action} from 'mobx';
 import {observer} from 'mobx-react/custom';
 import {Box} from './Box';
 import * as PropTypes from 'prop-types';
@@ -71,6 +71,7 @@ export class App extends React.Component {
     );
   }
 
+  @action
   onKeyUp (e: KeyboardEvent) {
     switch (e.key) {
       case 'Backspace':

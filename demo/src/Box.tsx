@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {observable} from 'mobx';
+import {observable, action} from 'mobx';
 import {observer} from 'mobx-react/custom';
 import * as PropTypes from 'prop-types';
 import * as Color from 'color';
@@ -31,6 +31,11 @@ export class Box extends React.Component<{
     window.removeEventListener('keyup', this.keyUpEventHandler);
   }
 
+  @action
+  setHovered (isHovered: boolean) {
+    this.isHovered = isHovered;
+  }
+
   render () {
     const mergedStyle = Object.assign({}, ...[
       styles.box,
@@ -54,8 +59,8 @@ export class Box extends React.Component<{
     return (
       <surface
         style={mergedStyle}
-        onMouseEnter={() => this.isHovered = true}
-        onMouseLeave={() => this.isHovered = false}
+        onMouseEnter={() => this.setHovered(true)}
+        onMouseLeave={() => this.setHovered(false)}
       >
         <surface style={styles.inner}>
           <text value={message}/>
@@ -64,6 +69,7 @@ export class Box extends React.Component<{
     );
   }
 
+  @action
   onKeyUp (e: KeyboardEvent) {
     if (e.key === ' ') {
       this.isAlternate = !this.isAlternate;

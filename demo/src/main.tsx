@@ -5,6 +5,9 @@ import {fonts} from './assets/fonts';
 import {AppContainer as HotLoaderContainer} from 'react-hot-loader';
 import {App} from './App';
 import {render as renderSurface, SurfaceRenderMemory} from '../../src/lib/render';
+import {useStrict} from 'mobx';
+
+useStrict(true);
 
 // Load global assets
 loadFonts({
