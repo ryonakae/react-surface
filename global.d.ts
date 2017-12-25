@@ -94,15 +94,15 @@ type RenderProps = {
 };
 
 type SurfaceTransform = {
-  x: number,
-  y: number,
-  scaleX: number,
-  scaleY: number,
-  rotation: number,
-  skewX: number,
-  skewY: number,
-  pivotX: number,
-  pivotY: number
+  x?: number,
+  y?: number,
+  scaleX?: number,
+  scaleY?: number,
+  rotation?: number,
+  skewX?: number,
+  skewY?: number,
+  pivotX?: number,
+  pivotY?: number
 };
 
 type SurfaceProps = {

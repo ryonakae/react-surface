@@ -159,7 +159,20 @@ export class Surface {
 
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
-    this.pixiContainer.position.set(layout.left, layout.top);
+
+    const t = this.props.style && this.props.style.transform || {};
+    this.pixiContainer.rotation = t.rotation || 0;
+    this.pixiContainer.skew.set(t.skewX || 0, t.skewY || 0);
+    this.pixiContainer.scale.set(t.scaleX || 1, t.scaleY || 1);
+    this.pixiContainer.pivot.set(
+      t.pivotX !== undefined ? t.pivotX : (layout.width / 2),
+      t.pivotY !== undefined ? t.pivotY : (layout.height / 2)
+    );
+    this.pixiContainer.position.set(
+      layout.left + (t.x || 0) + this.pixiContainer.pivot.x,
+      layout.top + (t.y || 0) + this.pixiContainer.pivot.y
+    );
+
 
     if (this.effectsContainer) {
       // TODO don't clear, use lookup instead
