@@ -61,6 +61,7 @@
       "test"
     ],
     "dev-server": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.stats --env.debug --env.hmr --env.sourceMaps",
+    "dev-server-fast": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.hmr",
     "test": "jest",
     "test-debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand",
     "lint": "tslint --project tsconfig.json --config tslint.json"
