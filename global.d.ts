@@ -10,8 +10,8 @@ declare module JSX {
 }
 
 type CSSProps = React.CSSProperties;
-type Color = any; // TODO use 'color' package
 type Percentage = string; // TODO can typescript enforce percentage strings?
+type SurfaceColor = any; // TODO use 'color' package
 type SurfaceValue = number;
 type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
 type SurfaceChild = React.ReactElement<SurfaceProps>;
@@ -77,18 +77,18 @@ type RenderProps = {
   text?: PIXI.TextStyleOptions,
 
   backgroundGradient?: any; // TODO type
-  backgroundColor?: Color;
+  backgroundColor?: SurfaceColor;
   backgroundImage?: any;
   backgroundOpacity?: SurfaceValue,
   backgroundPosition?: Array<SurfaceValueP>;
   backgroundSize?: 'auto' | 'cover' | 'contain' | Percentage | Array<Percentage>;
 
   borderRadius?: number;
-  borderColor?: Color;
-  borderColorTop?: Color;
-  borderColorRight?: Color;
-  borderColorBottom?: Color;
-  borderColorLeft?: Color;
+  borderColor?: SurfaceColor;
+  borderColorTop?: SurfaceColor;
+  borderColorRight?: SurfaceColor;
+  borderColorBottom?: SurfaceColor;
+  borderColorLeft?: SurfaceColor;
 
   transform?: SurfaceTransform
 };

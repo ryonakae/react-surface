@@ -4,6 +4,7 @@ import {commonColors} from './constants';
 import {getYogaValueTransformer, takeYogaEdgeValues, yogaEventNameMap} from './YogaHelpers';
 import {createBorderGraphics, createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
 import * as Color from 'color';
+import {Tween} from './tween/Tween';
 const yoga = require('yoga-layout');
 
 export class Surface {
@@ -313,6 +314,7 @@ export class SurfaceRoot extends Surface {
 
     this.target = target;
     this.app = app;
+    this.app.ticker.add(Tween.update);
     this.updateBounds();
 
     if (typeof window !== undefined) {
