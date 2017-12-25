@@ -17,13 +17,13 @@ const sizes = [
 ];
 
 const positions = [
+  ['50%', '50%'],
   [0, 0],
   [50, 0],
   [0, 50],
   [50, 50],
   ['0%', '100%'],
   ['100%', '0%'],
-  ['50%', '50%'],
   ['75%', '25%'],
   ['25%', '75%'],
 ];
@@ -67,7 +67,6 @@ export class App extends React.Component {
           size={sizes[this.sizeIndex % sizes.length]}
           position={positions[this.positionIndex % positions.length]}
         />
-        <surface style={styles.frontLayer}/>
       </surface>
     );
   }

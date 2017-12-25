@@ -57,7 +57,9 @@ export class Box extends React.Component<{
         onMouseEnter={() => this.isHovered = true}
         onMouseLeave={() => this.isHovered = false}
       >
-        <text value={message}/>
+        <surface style={styles.inner}>
+          <text value={message}/>
+        </surface>
       </surface>
     );
   }
@@ -72,21 +74,37 @@ export class Box extends React.Component<{
 const styles = SurfaceStyleSheet.create({
   box: {
     padding: 25,
-    paddingTop: 100,
-    paddingBottom: 100,
+    width: 250,
+    height: 250,
+    justifyContent: 'center',
+    alignItems: 'center',
     flexDirection: 'column',
-    backgroundColor: Color.rgb('#123012'),
+    backgroundColor: Color.rgb('#44b944'),
     backgroundImage: require('./assets/hat.png'),
     backgroundOpacity: 0.5,
-    borderRadius: 5,
+    borderRadius: 10,
+    border: 15,
+    borderColor: Color.rgb('#aa0003').alpha(0.5),
+    borderColorRight: Color.rgb('#2e8eaf').alpha(0.8),
+    borderColorBottom: Color.rgb('#24b213').alpha(0.5),
+    borderColorLeft: Color.rgb('#7522c8').alpha(0.2),
     marginBottom: 10,
     text: {
       wordWrap: true
     }
   },
 
+  inner: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: Color.rgb('#0000ff').alpha(0.5)
+  },
+
   boxAlternate: {
-    backgroundColor: Color.rgb('#321321')
+    backgroundColor: Color.rgb('#d5518d')
   },
 
   boxHovered: {
