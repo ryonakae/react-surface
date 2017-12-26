@@ -1,4 +1,5 @@
-import {Application, Container, Graphics, Text, TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
+import {Application, Container, DisplayObject, Graphics, Text,
+  TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
 import {commonColors} from './constants';
 import {getYogaValueTransformer, takeYogaEdgeValues, yogaEventNameMap} from './YogaHelpers';
@@ -20,6 +21,7 @@ export class Surface {
   private pixiContainer: Container;
   private effectsContainer: Container;
   private childContainer: Container;
+  private cache = new Map<string, {hash: string, obj: any}>();
   private pixiText: Text;
   public yogaNode: YogaNode;
   public parentNode: Surface;
@@ -71,6 +73,7 @@ export class Surface {
     this.pixiContainer.destroy();
     this.isDestroyed = true;
     this.root.surfacesWithTweens.delete(this.id);
+    this.cache.clear();
   }
 
   get children () {
@@ -249,7 +252,6 @@ export class Surface {
     }
 
     if (this.effectsContainer) {
-      // TODO don't clear, use lookup instead
       for (const child of this.effectsContainer.children) {
         this.effectsContainer.removeChild(child);
       }
@@ -263,37 +265,45 @@ export class Surface {
         if (mask) {
           return mask;
         }
-        mask = createRectGraphics(layout, commonColors.transparent, borderRadius);
+        mask = this.pullCache('mask', [layout, borderRadius], () =>
+          createRectGraphics(layout, commonColors.transparent, borderRadius)
+        );
         this.effectsContainer.addChild(mask);
         return mask;
       };
 
       if (backgroundColor !== undefined) {
         this.effectsContainer.addChild(
-          createRectGraphics(layout, backgroundColor, borderRadius)
+          this.pullCache('bgColor', [layout, backgroundColor, borderRadius], () =>
+            createRectGraphics(layout, backgroundColor, borderRadius)
+          )
         );
       }
 
-      if (style.backgroundImage !== undefined) {
-        const sprite = Sprite.fromImage(style.backgroundImage);
-        // TODO use central loader instead
-        if (sprite.texture.baseTexture.isLoading) {
-          sprite.texture.baseTexture.on('loaded', () => {
-            if (!this.isDestroyed) {
-              this.updatePixi();
-            }
-          });
-        }
+      const bgUrl = style.backgroundImage;
+      if (bgUrl !== undefined) {
+        const opacity = this.tweenableProps.backgroundOpacity.value;
+        const position = this.tweenableProps.backgroundPosition.value;
+        const size = this.tweenableProps.backgroundSize.value;
 
-        sprite.mask = getMask();
-        sprite.alpha = definedOr(this.tweenableProps.backgroundOpacity.value, 1);
-        resizeAndPositionSprite(
-          sprite,
-          layout,
-          this.tweenableProps.backgroundPosition.value,
-          this.tweenableProps.backgroundSize.value
+        this.effectsContainer.addChild(
+          this.pullCache('bgImage', [layout, bgUrl, opacity, position, size], () => {
+            const sprite = Sprite.fromImage(bgUrl);
+            // TODO use central loader instead
+            if (sprite.texture.baseTexture.isLoading) {
+              sprite.texture.baseTexture.on('loaded', () => {
+                if (!this.isDestroyed) {
+                  this.updatePixi();
+                }
+              });
+            }
+
+            sprite.mask = getMask();
+            sprite.alpha = definedOr(this.tweenableProps.backgroundOpacity.value, 1);
+            resizeAndPositionSprite(sprite, layout, position, size);
+            return sprite;
+          })
         );
-        this.effectsContainer.addChild(sprite);
       }
 
       const borderAll = this.tweenableProps.border.value;
@@ -315,17 +325,37 @@ export class Surface {
       const hasBorder = borderValues.find((width) => width > 0);
       if (hasBorder) {
         this.effectsContainer.addChild(
-          createBorderGraphics(
-            layout,
-            borderValues,
-            borderRadius,
-            borderColorValues
+          this.pullCache('border', [layout, borderValues, borderColorValues], () =>
+            createBorderGraphics(
+              layout,
+              borderValues,
+              borderRadius,
+              borderColorValues
+            )
           )
         );
       }
 
       this.pixiContainer.mask = style.overflow === 'hidden' ? getMask() : undefined;
     }
+  }
+
+  pullCache<T> (id: string, control: any[], create: () => T): T {
+    const hash = JSON.stringify(control);
+    let cache = this.cache.get(id);
+    if (!cache) {
+      cache = {
+        hash,
+        obj: create()
+      };
+      this.cache.set(id, cache);
+    }
+
+    if (cache.hash !== hash) {
+      cache.obj = create();
+    }
+
+    return cache.obj as T;
   }
 
   appendChild (child: Surface) {
