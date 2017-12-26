@@ -18,7 +18,7 @@ export function render<P> (element: ReactElement<P>, target: HTMLElement, memory
   const reconciler = createSurfaceReconciler(
     memory.root,
     memory.tree,
-    (type) => new Surface(type === 'text')
+    (root, type) => new Surface(root, type === 'text')
   );
 
   reconciler.injectIntoDevTools({

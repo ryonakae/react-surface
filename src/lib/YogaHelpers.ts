@@ -122,11 +122,29 @@ export const yogaEventNameMap: {[key: string]: interaction.InteractionEventTypes
   onMouseLeave: 'mouseout'
 };
 
+type ValueTaker = (name: string, fallbackValue: any) => any;
+
 const edgeNames = ['Top', 'Right', 'Bottom', 'Left'];
 const edgeValues = [yoga.EDGE_TOP, yoga.EDGE_RIGHT, yoga.EDGE_BOTTOM, yoga.EDGE_LEFT];
-export function takeYogaEdgeValues (props: any, propertyNameBase: string, getArray: boolean = false) {
-  const baseValue: any = props.hasOwnProperty(propertyNameBase) ? props[propertyNameBase] : 0;
-  delete props[propertyNameBase];
+export function takeYogaEdgeValues (
+  source: any | ValueTaker,
+  propertyNameBase: string,
+  getArray: boolean = false,
+  fallbackBaseValue: any = 0
+) {
+  let take = source;
+  if (typeof source !== 'function') {
+    take = (name: string, fallbackValue: any) => {
+      if (source.hasOwnProperty(name)) {
+        const value = source[name];
+        delete source[name];
+        return value;
+      }
+      return fallbackValue;
+    };
+  }
+
+  const baseValue: any = take(propertyNameBase, fallbackBaseValue);
 
   const initialValues = getArray ?
     [baseValue, baseValue, baseValue, baseValue] :
@@ -140,9 +158,8 @@ export function takeYogaEdgeValues (props: any, propertyNameBase: string, getArr
   return edgeNames.reduce(
     (values, cornerName, index) => {
       const propertyName = propertyNameBase + cornerName;
-      if (props.hasOwnProperty(propertyName)) {
-        const value = props[propertyName];
-        delete props[propertyName];
+      const value = take(propertyName);
+      if (value !== undefined) {
         if (getArray) {
           values[index] = value;
         } else {

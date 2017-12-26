@@ -5,6 +5,7 @@ import {getYogaValueTransformer, takeYogaEdgeValues, yogaEventNameMap} from './Y
 import {createBorderGraphics, createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
 import * as Color from 'color';
 import {Tween} from './tween/Tween';
+import TweenInstruction from './tween/TweenInstruction';
 const yoga = require('yoga-layout');
 
 export class Surface {
@@ -19,10 +20,17 @@ export class Surface {
   public id: number;
   public props: SurfaceProps = {};
 
+  tweens = new TweenReferences(this);
+
   constructor (
+    public root: SurfaceRoot,
     isText: boolean = false,
     container?: Container
   ) {
+    if (this instanceof SurfaceRoot) {
+      this.root = this;
+    }
+
     this.yogaNode = yoga.Node.create();
     this.pixiContainer = container || new Container();
 
@@ -57,6 +65,7 @@ export class Surface {
     this.yogaNode.reset();
     this.pixiContainer.destroy();
     this.isDestroyed = true;
+    this.tweens.flush(true);
   }
 
   get children () {
@@ -101,7 +110,11 @@ export class Surface {
     this.props = nextProps;
     this.textValue = nextProps.value;
     this.updateEvents(prevProps, nextProps);
+
+    this.tweens.track();
     this.updateYoga(nextProps.style);
+    this.updatePixi();
+    this.tweens.flush();
   }
 
   updateEvents (prevProps: SurfaceProps, nextProps: SurfaceProps): void {
@@ -124,7 +137,7 @@ export class Surface {
     this.pixiContainer.interactive = this.pixiContainer.eventNames().length > 0;
   }
 
-  updateYoga (props: YogaProps = {}) {
+  updateYoga (props: YogaProps = this.props.style) {
     const clonedProps = {...props};
     const yogaNode = this.yogaNode as any;
 
@@ -132,26 +145,31 @@ export class Surface {
       yogaNode.markDirty();
     }
 
-    const borderValues = takeYogaEdgeValues(clonedProps, 'border');
+    const borderValues = takeYogaEdgeValues(this.tweens.reference.bind(this.tweens), 'border', true) as number[];
     for (const edge in borderValues) {
       yogaNode.setBorder(edge, borderValues[edge]);
     }
 
-    const paddingValues = takeYogaEdgeValues(clonedProps, 'padding');
+    const paddingValues = takeYogaEdgeValues(this.tweens.reference.bind(this.tweens), 'padding', true) as number[];
     for (const edge in paddingValues) {
       yogaNode.setPadding(edge, paddingValues[edge]);
     }
 
-    const marginValues = takeYogaEdgeValues(clonedProps, 'margin');
+    const marginValues = takeYogaEdgeValues(this.tweens.reference.bind(this.tweens), 'margin', true) as number[];
     for (const edge in marginValues) {
       yogaNode.setMargin(edge, marginValues[edge]);
     }
 
     for (const key in clonedProps) {
+      // HACK don't do this it's absolutely stupid
+      if (/border|padding|margin/.test(key)) {
+        continue;
+      }
+
       const transformer = getYogaValueTransformer(key);
       const setFn = yogaNode[transformer.functionName];
       if (setFn) {
-        const value = (clonedProps as any)[key];
+        const value = this.tweens.reference(key);
         const args = transformer.transform(value);
         setFn.apply(yogaNode, args);
       }
@@ -161,19 +179,27 @@ export class Surface {
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
 
-    const t = this.props.style && this.props.style.transform || {};
-    this.pixiContainer.rotation = t.rotation || 0;
-    this.pixiContainer.skew.set(t.skewX || 0, t.skewY || 0);
-    this.pixiContainer.scale.set(t.scaleX || 1, t.scaleY || 1);
+    this.pixiContainer.rotation = this.tweens.reference('transform.rotation', 0);
+    this.pixiContainer.skew.set(
+      this.tweens.reference('transform.skewX', 0),
+      this.tweens.reference('transform.skewY', 0)
+    );
+    this.pixiContainer.scale.set(
+      this.tweens.reference('transform.scaleX', 1),
+      this.tweens.reference('transform.scaleY', 1)
+    );
     this.pixiContainer.pivot.set(
-      t.pivotX !== undefined ? t.pivotX : (layout.width / 2),
-      t.pivotY !== undefined ? t.pivotY : (layout.height / 2)
+      this.tweens.reference('transform.pivotX', layout.width / 2),
+      this.tweens.reference('transform.pivotY', layout.height / 2)
     );
     this.pixiContainer.position.set(
-      layout.left + (t.x || 0) + this.pixiContainer.pivot.x,
-      layout.top + (t.y || 0) + this.pixiContainer.pivot.y
+      layout.left + this.tweens.reference('transform.x', 0) + this.pixiContainer.pivot.x,
+      layout.top + this.tweens.reference('transform.y', 0) + this.pixiContainer.pivot.y
     );
 
+    if (this.pixiText) {
+      Object.assign(this.pixiText.style, this.cascadedTextStyle);
+    }
 
     if (this.effectsContainer) {
       // TODO don't clear, use lookup instead
@@ -181,21 +207,23 @@ export class Surface {
         this.effectsContainer.removeChild(child);
       }
 
-      const style: SurfaceStyle = {...this.props.style};
+      const style = {...this.props.style};
+      const borderRadius = this.tweens.reference('borderRadius', 0);
+      const backgroundColor: Color = this.tweens.reference('backgroundColor');
 
       let mask: Graphics;
       const getMask = () => {
         if (mask) {
           return mask;
         }
-        mask = createRectGraphics(layout, commonColors.transparent, style.borderRadius);
+        mask = createRectGraphics(layout, commonColors.transparent, borderRadius);
         this.effectsContainer.addChild(mask);
         return mask;
       };
 
-      if (style.backgroundColor !== undefined) {
+      if (backgroundColor !== undefined) {
         this.effectsContainer.addChild(
-          createRectGraphics(layout, style.backgroundColor, style.borderRadius)
+          createRectGraphics(layout, backgroundColor, borderRadius)
         );
       }
 
@@ -211,30 +239,36 @@ export class Surface {
         }
 
         sprite.mask = getMask();
-        sprite.alpha = style.backgroundOpacity || 1;
-        resizeAndPositionSprite(sprite, layout, style.backgroundPosition, style.backgroundSize);
+        sprite.alpha = this.tweens.reference('backgroundOpacity', 1);
+        resizeAndPositionSprite(
+          sprite,
+          layout,
+          this.tweens.reference('backgroundPosition'),
+          this.tweens.reference('backgroundSize')
+        );
         this.effectsContainer.addChild(sprite);
       }
 
-      const borderValues = takeYogaEdgeValues(style, 'border', true) as number[];
+      const borderValues = takeYogaEdgeValues(this.tweens.reference.bind(this.tweens), 'border', true) as number[];
       const hasBorder = borderValues.find((width) => width > 0);
       if (hasBorder) {
-        const borderColorValues = takeYogaEdgeValues(style, 'borderColor', true) as Color[];
+        const borderColorValues = takeYogaEdgeValues(
+          this.tweens.reference.bind(this.tweens),
+          'borderColor',
+          true,
+          commonColors.transparent
+        ) as Color[];
         this.effectsContainer.addChild(
           createBorderGraphics(
             layout,
             borderValues,
-            style.borderRadius,
+            borderRadius,
             borderColorValues
           )
         );
       }
 
       this.pixiContainer.mask = style.overflow === 'hidden' ? getMask() : undefined;
-    }
-
-    if (this.pixiText) {
-      Object.assign(this.pixiText.style, this.cascadedTextStyle);
     }
   }
 
@@ -297,10 +331,74 @@ export class Surface {
   }
 }
 
+class TweenReferences {
+  private tweens = new Map<string, Tween<any>>();
+  private expired = new Map<string, boolean>();
+
+  constructor (
+    private surface: Surface
+  ) {}
+
+  reference (path: string, fallbackValue?: any) {
+    const steps = path.split('.');
+
+    let obj: any = this.surface.props.style;
+    for (const step of steps) {
+      if (!obj || !obj.hasOwnProperty(step)) {
+        return fallbackValue;
+      }
+      obj = obj[step];
+    }
+
+    if (obj instanceof TweenInstruction) {
+      let tween = this.tweens.get(path);
+      if (!tween) {
+        tween = new Tween(obj.to, obj.options);
+        tween.instruct(obj);
+        this.tweens.set(path, tween);
+      } else if (!obj.equals(tween.lastInstruction)) {
+        tween.instruct(obj);
+      }
+      this.expired.delete(path);
+      return tween.value;
+    } if (obj instanceof Tween) {
+      return obj.value;
+    }
+
+    return obj;
+  }
+
+  track () {
+    this.tweens.forEach((tween, key) => this.expired.set(key, true));
+  }
+
+  flush (expireAll: boolean = false) {
+    if (expireAll) {
+      this.track();
+    }
+
+    this.expired.forEach((throwAway, key) => {
+      const tween = this.tweens.get(key);
+      tween.stop();
+      this.tweens.delete(key);
+    });
+
+    this.expired.clear();
+
+    if (this.tweens.size > 0) {
+      this.surface.root.surfacesWithTweens.set(this.surface.id, this.surface);
+    } else {
+      this.surface.root.surfacesWithTweens.delete(this.surface.id);
+    }
+  }
+}
+
 export class SurfaceRoot extends Surface {
   private app: Application;
   private bounds: {width: number, height: number};
   private target?: HTMLElement;
+
+  surfacesWithTweens: Map<number, Surface>;
 
   constructor (target: HTMLElement) {
     const app = new Application(target.clientWidth, target.clientHeight, {
@@ -310,11 +408,12 @@ export class SurfaceRoot extends Surface {
 
     target.appendChild(app.view);
 
-    super(false, app.stage);
+    super(null, false, app.stage);
 
+    this.surfacesWithTweens = new Map<number, Surface>();
     this.target = target;
     this.app = app;
-    this.app.ticker.add(Tween.update);
+    this.app.ticker.add(this.updateTweens.bind(this));
     this.updateBounds();
 
     if (typeof window !== undefined) {
@@ -331,13 +430,28 @@ export class SurfaceRoot extends Surface {
     this.applyLayout();
   }
 
-  applyLayout () {
+  private applyLayout () {
     this.yogaNode.calculateLayout(this.bounds.width, this.bounds.height, yoga.DIRECTION_LTR);
     const queue: Surface[] = [this];
     while (queue.length) {
       const next = queue.pop();
       next.updatePixi();
       queue.push(...next.children);
+    }
+  }
+
+  private updateTweens () {
+    Tween.update();
+
+    if (this.surfacesWithTweens.size) {
+      this.applyLayout();
+    }
+
+    for (const surface of this.surfacesWithTweens.values()) {
+      surface.tweens.track();
+      surface.updateYoga();
+      surface.updatePixi();
+      surface.tweens.flush();
     }
   }
 
