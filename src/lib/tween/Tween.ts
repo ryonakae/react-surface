@@ -7,6 +7,8 @@ export class Tween<TValue> {
   private tween?: TWEEN.Tween;
   private resolvers: Array<(value: TValue) => void> = [];
 
+  lastInstruction: TweenInstruction<TValue>;
+
   constructor (
     public value: TValue, 
     public options: TweenOptions = presets.default
@@ -24,13 +26,20 @@ export class Tween<TValue> {
     }
   }
 
+  stop () {
+    if (this.tween) {
+      this.tween.stop();
+      delete this.tween;
+    }
+  }
+
   instruct (inst: TweenInstruction<TValue>) {
+    this.lastInstruction = inst;
+
     // Merge tween options with expression options
     inst = inst.extend({options: this.options.extend(inst.options)});
 
-    if (this.tween) {
-      this.tween.stop();
-    }
+    this.stop();
 
     if (inst.from !== undefined) {
       this.value = inst.from;
