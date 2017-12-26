@@ -1,104 +1,73 @@
 import * as React from 'react';
-import {observable, action} from 'mobx';
-import {observer} from 'mobx-react/custom';
-import * as PropTypes from 'prop-types';
 import * as Color from 'color';
-import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
+import {Tween} from '../../src';
+import {observer} from 'mobx-react/custom';
+import {observable, action} from 'mobx';
 
 @observer
 export class Box extends React.Component<{
-  size?: RenderProps['backgroundSize'],
-  position?: RenderProps['backgroundPosition']
+  properties: Array<{name: string, off: any, on: any}>
 }> {
-  @observable isAlternate = true;
-  @observable isHovered = false;
-  private keyUpEventHandler: any;
-
-  static contextTypes = {
-    foo: PropTypes.string
-  };
-
-  shouldComponentUpdate () {
-    return true;
-  }
+  @observable isOn = false;
+  private intervalId: any;
 
   componentWillMount () {
-    this.keyUpEventHandler = this.onKeyUp.bind(this);
-    window.addEventListener('keyup', this.keyUpEventHandler);
+    this.intervalId = setInterval(this.toggle.bind(this), 1000);
   }
 
   componentWillUnmount () {
-    window.removeEventListener('keyup', this.keyUpEventHandler);
+    clearInterval(this.intervalId);
   }
 
   @action
-  setHovered (isHovered: boolean) {
-    this.isHovered = isHovered;
+  toggle () {
+    this.isOn = !this.isOn;
   }
 
   render () {
-    const mergedStyle = Object.assign({}, ...[
-      styles.box,
-      this.isAlternate && styles.boxAlternate,
-      this.isHovered && styles.boxHovered,
-      {
-        backgroundSize: this.props.size,
-        backgroundPosition: this.props.position
-      }
-    ]);
-
-    const message = JSON.stringify(
-      {
-        position: this.props.position,
-        size: this.props.size
+    const label = this.props.properties.map(({name}) => name).join(', ');
+    const style = this.props.properties.reduce(
+      (style, {name, off, on}) => {
+        const steps = name.split('.');
+        const last = steps.splice(steps.length - 1, 1)[0];
+        let obj: any = style;
+        for (const step of steps) {
+          obj = obj[step] = (obj[step] || (obj[step] = {}));
+        }
+        obj[last] = Tween.toggle(on, off, this.isOn);
+        return style;
       },
-      null,
-      2
+      {}
     );
 
     return (
-      <surface
-        style={mergedStyle}
-        onMouseEnter={() => this.setHovered(true)}
-        onMouseLeave={() => this.setHovered(false)}
-      >
+      <surface style={Object.assign({}, styles.box, style)}>
         <surface style={styles.inner}>
-          <text value={message}/>
+          <text value={label}/>
         </surface>
       </surface>
     );
   }
-
-  @action
-  onKeyUp (e: KeyboardEvent) {
-    if (e.key === ' ') {
-      this.isAlternate = !this.isAlternate;
-    }
-  }
 }
 
-const styles = SurfaceStyleSheet.create({
+const styles = {
   box: {
     padding: 25,
-    width: 250,
-    height: 250,
+    width: 150,
+    height: 150,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column',
-    backgroundColor: Color.rgb('#44b944'),
+    backgroundColor: Color.rgb('#999222'),
     backgroundImage: require('./assets/hat.png'),
     backgroundOpacity: 0.5,
+    backgroundSize: 'contain',
     borderRadius: 10,
-    border: 15,
-    borderColor: Color.rgb('#aa0003').alpha(0.5),
-    borderColorRight: Color.rgb('#2e8eaf').alpha(0.8),
-    borderColorBottom: Color.rgb('#24b213').alpha(0.5),
-    borderColorLeft: Color.rgb('#7522c8').alpha(0.2),
-    marginBottom: 10,
+    border: 10,
+    borderColor: Color.rgb('#ff0000').alpha(0.5),
     text: {
       wordWrap: true
     }
-  },
+  } as SurfaceStyle,
 
   inner: {
     width: '100%',
@@ -107,13 +76,5 @@ const styles = SurfaceStyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: Color.rgb('#0000ff').alpha(0.5)
-  },
-
-  boxAlternate: {
-    backgroundColor: Color.rgb('#d5518d')
-  },
-
-  boxHovered: {
-    backgroundColor: Color.rgb('#999222')
-  }
-});
+  } as SurfaceStyle
+};
