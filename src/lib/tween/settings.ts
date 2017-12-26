@@ -3,7 +3,6 @@ import {BezierEasing} from './BezierEasing';
 import {NumberArithmetic} from './arithmetics/NumberArithmetic';
 import {ColorArithmetic} from './arithmetics/ColorArithmetic';
 import {VectorArithmetic} from './arithmetics/VectorArithmetic';
-import {TweenValue} from './Tween';
 import {IArithmetic} from './arithmetics/IArithmetic';
 
 const defaultOptions = new TweenOptions({
@@ -28,10 +27,10 @@ export const arithmetics: IArithmetic<{}>[] = [
   new VectorArithmetic()
 ];
 
-export function getArithmetic (value: TweenValue) {
+export function getArithmetic<TValue> (value: TValue): IArithmetic<TValue> {
   for (const arm of arithmetics) {
     if (arm.test(value)) {
-      return arm;
+      return arm as IArithmetic<TValue>;
     }
   }
 

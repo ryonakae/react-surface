@@ -1,4 +1,4 @@
-import {Tween, TweenValue} from './Tween';
+import {Tween} from './Tween';
 import {presets} from './settings';
 import {IArithmetic} from './arithmetics/IArithmetic';
 import {NumberArithmetic} from './arithmetics/NumberArithmetic';
@@ -41,7 +41,7 @@ describe('Tween', () => {
 });
 
 function testArithmetic<TValue> (arithmetic: IArithmetic<TValue>) {
-  const expectArithmeticEqual = (a: TweenValue, b: TweenValue) => (
+  const expectArithmeticEqual = (a: TValue, b: TValue) => (
     expect(arithmetic.equals(a, b)).toBe(true)
   );
 
