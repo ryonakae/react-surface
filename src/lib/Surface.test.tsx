@@ -84,7 +84,7 @@ describe('Surface', () => {
   });
 
   it(`can update surface`, () => {
-    const afterProps = {style: {width: 10, height: 10}, hidden: false};
+    const afterProps = {width: 10, height: 10};
 
     const container = render(
       <surface>
@@ -171,7 +171,7 @@ describe('Surface', () => {
   // Sanity checking Yoga/Pixi integration
 
   it(`can customize size of root surface`, () => {
-    const container = render(<surface style={{width: 150, height: 200}}/>);
+    const container = render(<surface {...{width: 150, height: 200}}/>);
     const layout = container.yogaNode.getComputedLayout();
     expect(layout.width).toBe(150);
     expect(layout.height).toBe(200);
@@ -179,9 +179,9 @@ describe('Surface', () => {
 
   it(`can flex in row`, () => {
     const container = render(
-      <surface style={{width: 100, height: 100, flexDirection: 'row'}}>
-        <surface style={{flex: 1}}/>
-        <surface style={{flex: 1}}/>
+      <surface {...{width: 100, height: 100, flexDirection: 'row'}}>
+        <surface {...{flex: 1}}/>
+        <surface {...{flex: 1}}/>
       </surface>
     );
 
@@ -194,9 +194,9 @@ describe('Surface', () => {
 
   it(`can flex in column`, () => {
     const container = render(
-      <surface style={{width: 100, height: 100, flexDirection: 'column'}}>
-        <surface style={{flex: 1}}/>
-        <surface style={{flex: 1}}/>
+      <surface {...{width: 100, height: 100, flexDirection: 'column'}}>
+        <surface {...{flex: 1}}/>
+        <surface {...{flex: 1}}/>
       </surface>
     );
 
@@ -209,8 +209,8 @@ describe('Surface', () => {
 
   it(`can use absolute position`, () => {
     const container = render(
-      <surface style={{width: 100, height: 100}}>
-        <surface style={{position: 'absolute', top: 10, right: 10, bottom: 10, left: 10}}/>
+      <surface {...{width: 100, height: 100}}>
+        <surface {...{position: 'absolute', top: 10, right: 10, bottom: 10, left: 10}}/>
       </surface>
     );
 

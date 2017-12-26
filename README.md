@@ -35,7 +35,7 @@ class Button extends React.Component<{
   render () {
     return (
       <surface
-        style={styles.button(this.isHovered)}
+        {...styles.button(this.isHovered)}
         onMouseEnter={() => this.isHovered = true}
         onMouseLeave={() => this.isHovered = false}
       >

@@ -41,8 +41,8 @@ export class Box extends React.Component<{
     );
 
     return (
-      <surface style={Object.assign({}, styles.box, style)}>
-        <surface style={styles.inner}>
+      <surface {...Object.assign({}, styles.box, style)}>
+        <surface {...styles.inner}>
           <text value={label}/>
         </surface>
       </surface>
@@ -63,10 +63,7 @@ const styles = {
     backgroundSize: 'contain',
     borderRadius: 10,
     border: 10,
-    borderColor: Color.rgb('#ff0000').alpha(0.5),
-    text: {
-      wordWrap: true
-    }
+    borderColor: Color.rgb('#ff0000').alpha(0.5)
   } as SurfaceStyle,
 
   inner: {

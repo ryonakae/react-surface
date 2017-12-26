@@ -91,10 +91,25 @@ export class Surface {
     // TODO optimize: generate cascade on property changes instead of on request
     const parentStyle: any = this.parentNode ? {...this.parentNode.cascadedTextStyle} : {};
 
-    return {
-      ...parentStyle,
-      ...this.props.style && this.props.style.text
+    const color: Color = this.tweens.reference('color');
+    const textStyle: PIXI.TextStyleOptions = {
+      fill: color ? color.rgbNumber() : undefined,
+      wordWrap: this.props.wordWrap !== undefined ? this.props.wordWrap : true,
+      align: this.props.textAlign,
+      letterSpacing: this.tweens.reference('letterSpacing'),
+      fontFamily: this.props.fontFamily,
+      fontSize: this.tweens.reference('fontSize'),
+      fontStyle: this.props.fontStyle,
+      fontWeight: this.props.fontWeight
     };
+
+    for (const key in textStyle) {
+      if ((textStyle as any)[key] === undefined) {
+        delete (textStyle as any)[key];
+      }
+    }
+
+    return {...parentStyle, ...textStyle};
   }
 
   measureText () {
@@ -105,19 +120,20 @@ export class Surface {
     };
   }
 
-  updateProps (nextProps: SurfaceProps) {
+  updateProps (deltaProps: SurfaceProps) {
     const prevProps = this.props;
-    this.props = nextProps;
-    this.textValue = nextProps.value;
-    this.updateEvents(prevProps, nextProps);
+    this.props = Object.assign({}, this.props, deltaProps);
+    this.textValue = this.props.value;
+    this.updateEvents(prevProps, this.props);
+    this.updateTweenableProps(prevProps, this.props);
 
     this.tweens.track();
-    this.updateYoga(nextProps.style);
+    this.updateYoga();
     this.updatePixi();
     this.tweens.flush();
   }
 
-  updateEvents (prevProps: SurfaceProps, nextProps: SurfaceProps): void {
+  updateEvents (prevProps: SurfaceProps, nextProps: SurfaceProps) {
     const {removed, added, changed} = diffEventProps(prevProps, nextProps);
 
     for (const name in removed) {
@@ -137,35 +153,18 @@ export class Surface {
     this.pixiContainer.interactive = this.pixiContainer.eventNames().length > 0;
   }
 
-  updateYoga (props: YogaProps = this.props.style) {
-    const clonedProps = {...props};
+  updateTweenableProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {
+
+  }
+
+  updateYoga () {
     const yogaNode = this.yogaNode as any;
 
     if (this.pixiText) {
       yogaNode.markDirty();
     }
 
-    const borderValues = takeYogaEdgeValues(this.tweens.reference.bind(this.tweens), 'border', true) as number[];
-    for (const edge in borderValues) {
-      yogaNode.setBorder(edge, borderValues[edge]);
-    }
-
-    const paddingValues = takeYogaEdgeValues(this.tweens.reference.bind(this.tweens), 'padding', true) as number[];
-    for (const edge in paddingValues) {
-      yogaNode.setPadding(edge, paddingValues[edge]);
-    }
-
-    const marginValues = takeYogaEdgeValues(this.tweens.reference.bind(this.tweens), 'margin', true) as number[];
-    for (const edge in marginValues) {
-      yogaNode.setMargin(edge, marginValues[edge]);
-    }
-
-    for (const key in clonedProps) {
-      // HACK don't do this it's absolutely stupid
-      if (/border|padding|margin/.test(key)) {
-        continue;
-      }
-
+    for (const key in this.props) {
       const transformer = getYogaValueTransformer(key);
       const setFn = yogaNode[transformer.functionName];
       if (setFn) {
@@ -179,22 +178,22 @@ export class Surface {
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
 
-    this.pixiContainer.rotation = this.tweens.reference('transform.rotation', 0);
+    this.pixiContainer.rotation = this.tweens.reference('rotation', 0);
     this.pixiContainer.skew.set(
-      this.tweens.reference('transform.skewX', 0),
-      this.tweens.reference('transform.skewY', 0)
+      this.tweens.reference('skewX', 0),
+      this.tweens.reference('skewY', 0)
     );
     this.pixiContainer.scale.set(
-      this.tweens.reference('transform.scaleX', 1),
-      this.tweens.reference('transform.scaleY', 1)
+      this.tweens.reference('scaleX', 1),
+      this.tweens.reference('scaleY', 1)
     );
     this.pixiContainer.pivot.set(
-      this.tweens.reference('transform.pivotX', layout.width / 2),
-      this.tweens.reference('transform.pivotY', layout.height / 2)
+      this.tweens.reference('pivotX', layout.width / 2),
+      this.tweens.reference('pivotY', layout.height / 2)
     );
     this.pixiContainer.position.set(
-      layout.left + this.tweens.reference('transform.x', 0) + this.pixiContainer.pivot.x,
-      layout.top + this.tweens.reference('transform.y', 0) + this.pixiContainer.pivot.y
+      layout.left + this.tweens.reference('translateX', 0) + this.pixiContainer.pivot.x,
+      layout.top + this.tweens.reference('translateY', 0) + this.pixiContainer.pivot.y
     );
 
     if (this.pixiText) {
@@ -207,7 +206,7 @@ export class Surface {
         this.effectsContainer.removeChild(child);
       }
 
-      const style = {...this.props.style};
+      const style = {...this.props};
       const borderRadius = this.tweens.reference('borderRadius', 0);
       const backgroundColor: Color = this.tweens.reference('backgroundColor');
 
@@ -342,7 +341,7 @@ class TweenReferences {
   reference (path: string, fallbackValue?: any) {
     const steps = path.split('.');
 
-    let obj: any = this.surface.props.style;
+    let obj: any = this.surface.props;
     for (const step of steps) {
       if (!obj || !obj.hasOwnProperty(step)) {
         return fallbackValue;

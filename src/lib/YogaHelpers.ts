@@ -12,26 +12,29 @@ const mixedYogaValueTransformers: {[key: string]: YogaValueTransformerFn | YogaV
     }
   },
 
-  top: {
-    functionName: 'setPosition',
-    transform: (value: number) => [yoga.EDGE_TOP, value]
-  },
+  top: {functionName: 'setPosition', transform: (value: number) => [yoga.EDGE_TOP, value]},
+  right: {functionName: 'setPosition', transform: (value: number) => [yoga.EDGE_RIGHT, value]},
+  bottom: {functionName: 'setPosition', transform: (value: number) => [yoga.EDGE_BOTTOM, value]},
+  left: {functionName: 'setPosition', transform: (value: number) => [yoga.EDGE_LEFT, value]},
 
-  right: {
-    functionName: 'setPosition',
-    transform: (value: number) => [yoga.EDGE_RIGHT, value]
-  },
+  border: {functionName: 'setBorder', transform: (value: number) => [yoga.EDGE_ALL, value]},
+  borderTop: {functionName: 'setBorder', transform: (value: number) => [yoga.EDGE_TOP, value]},
+  borderRight: {functionName: 'setBorder', transform: (value: number) => [yoga.EDGE_RIGHT, value]},
+  borderBottom: {functionName: 'setBorder', transform: (value: number) => [yoga.EDGE_BOTTOM, value]},
+  borderLeft: {functionName: 'setBorder', transform: (value: number) => [yoga.EDGE_LEFT, value]},
 
-  bottom: {
-    functionName: 'setPosition',
-    transform: (value: number) => [yoga.EDGE_BOTTOM, value]
-  },
+  margin: {functionName: 'setMargin', transform: (value: number) => [yoga.EDGE_ALL, value]},
+  marginTop: {functionName: 'setMargin', transform: (value: number) => [yoga.EDGE_TOP, value]},
+  marginRight: {functionName: 'setMargin', transform: (value: number) => [yoga.EDGE_RIGHT, value]},
+  marginBottom: {functionName: 'setMargin', transform: (value: number) => [yoga.EDGE_BOTTOM, value]},
+  marginLeft: {functionName: 'setMargin', transform: (value: number) => [yoga.EDGE_LEFT, value]},
 
-  left: {
-    functionName: 'setPosition',
-    transform: (value: number) => [yoga.EDGE_LEFT, value]
-  },
-
+  padding: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_ALL, value]},
+  paddingTop: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_TOP, value]},
+  paddingRight: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_RIGHT, value]},
+  paddingBottom: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_BOTTOM, value]},
+  paddingLeft: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_LEFT, value]},
+  
   position: {
     functionName: 'setPositionType',
     transform (value: string) {

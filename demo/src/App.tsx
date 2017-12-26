@@ -7,8 +7,8 @@ import {PropertyTweens} from './PropertyTweens';
 export class App extends React.Component {
   render () {
     return (
-      <surface style={styles.app}>
-        <surface style={styles.backLayer}/>
+      <surface {...styles.app}>
+        <surface {...styles.backLayer}/>
         <PropertyTweens/>
       </surface>
     );
@@ -25,11 +25,9 @@ const styles = SurfaceStyleSheet.create({
     borderRadius: 15,
     flexWrap: 'wrap',
     flexDirection: 'row',
-    text: {
-      fill: Color.rgb('#ffffff').rgbNumber(),
-      fontSize: 14,
-      fontFamily: fonts.Default
-    }
+    color: Color.rgb('#ffffff'),
+    fontSize: 14,
+    fontFamily: fonts.Default
   },
 
   backLayer: {

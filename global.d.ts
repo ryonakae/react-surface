@@ -1,11 +1,7 @@
 declare module JSX {
   interface IntrinsicElements {
-    text: SurfaceProps & {
-      style?: null
-    };
-    surface: SurfaceProps & {
-      children?: SurfaceChild | Array<SurfaceChild | Array<SurfaceChild>>
-    };
+    text: SurfaceProps & {style?: null};
+    surface: SurfaceProps;
   }
 }
 
@@ -74,8 +70,15 @@ type YogaProps = {
   overflow?: 'visible' | 'hidden' | 'scroll';
 };
 
-type RenderProps = {
-  text?: PIXI.TextStyleOptions,
+type RenderProps = SurfaceTransform & {
+  color?: SurfaceColor;
+  textAlign?: 'start' | 'center' | 'end',
+  wordWrap?: boolean;
+  letterSpacing?: SurfaceValue;
+  fontFamily?: string | string[];
+  fontSize?: SurfaceValue;
+  fontStyle?: string;
+  fontWeight?: string;
 
   backgroundGradient?: any; // TODO type
   backgroundColor?: SurfaceColor;
@@ -90,13 +93,11 @@ type RenderProps = {
   borderColorRight?: SurfaceColor;
   borderColorBottom?: SurfaceColor;
   borderColorLeft?: SurfaceColor;
-
-  transform?: SurfaceTransform
 };
 
 type SurfaceTransform = {
-  x?: SurfaceValue,
-  y?: SurfaceValue,
+  translateX?: SurfaceValue,
+  translateY?: SurfaceValue,
   scaleX?: SurfaceValue,
   scaleY?: SurfaceValue,
   rotation?: SurfaceValue,
@@ -106,21 +107,24 @@ type SurfaceTransform = {
   pivotY?: SurfaceValue
 };
 
-type SurfaceProps = {
-  // React internals
-  key?: string | number;
-  ref?: (surf: any) => void;
-  hidden?: boolean;
-
-  // Surface API
-  value?: string,
-  style?: SurfaceStyle,
+type SurfaceEvents = {
   onClick?: (e: PIXI.interaction.InteractionEvent) => void;
   onRightClick?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseUp?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseDown?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseEnter?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseLeave?: (e: PIXI.interaction.InteractionEvent) => void;
+};
+
+type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
+  // React internals
+  key?: string | number;
+  ref?: (surf: any) => void;
+  hidden?: boolean;
+  children?: SurfaceChild | Array<SurfaceChild | Array<SurfaceChild>>;
+
+  // Surface API
+  value?: string,
 };
 
 // TODO replace types below with actual types from react-reconciler and yoga-layout when they are available
