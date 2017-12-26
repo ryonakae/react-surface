@@ -22,4 +22,14 @@ export class TweenOptions extends TweenOptionsProps {
     }
     return new TweenOptions({...this.props, ...ext});
   }
+
+  equals (other: TweenOptions) {
+    if (!other) {
+      return false;
+    }
+
+    return this.duration === other.duration &&
+      this.delay === other.delay &&
+      this.easing.equals(other.easing);
+  }
 }
