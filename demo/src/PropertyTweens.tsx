@@ -22,6 +22,7 @@ const tests = [
   [{name: 'bottom', off: 0, on: 20}],
   [{name: 'left', off: 0, on: 20}],
   [{name: 'border', off: 0, on: 20}],
+  [{name: 'borderRadius', off: 0, on: 50}],
   [{name: 'borderColor', off: Color.rgb('#ff0000'), on: Color.rgb('#0000ff')}],
   [{name: 'rotation', off: 0, on: Math.PI}],
   [{name: 'skewX', off: 0, on: Math.PI}],
