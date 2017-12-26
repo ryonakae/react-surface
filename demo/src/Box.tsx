@@ -61,9 +61,9 @@ const styles = {
     backgroundImage: require('./assets/hat.png'),
     backgroundOpacity: 0.5,
     backgroundSize: 'contain',
-    borderRadius: 10,
     border: 10,
-    borderColor: Color.rgb('#ff0000').alpha(0.5)
+    borderColor: Color.rgb('#ff0000').alpha(0.5),
+    overflow: 'hidden'
   } as SurfaceStyle,
 
   inner: {
