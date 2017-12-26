@@ -66,16 +66,15 @@ export class VectorArithmetic implements IArithmetic<number[]> {
     return true;
   }
 
-  magnitude (v: number[]): number {
-    const sum = v.reduce((sum, number) => Math.abs(sum) + Math.pow(number, 2), 0);
-    return Math.sqrt(sum);
-  }
-
   abs (v: number[]): number[] {
     return v.map((e) => Math.abs(e));
   }
 
   test (value: any): boolean {
     return Array.isArray(value);
+  }
+
+  parse (value: number[]) {
+    return value;
   }
 }

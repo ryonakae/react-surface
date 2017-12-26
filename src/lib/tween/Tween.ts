@@ -67,9 +67,11 @@ export class Tween<TValue extends TweenValue> {
         .delay(inst.options.delay)
         .to({progress: 1}, duration)
         .onUpdate(() => {
-          this.value = this.arithmetic.add(
-            startValue,
-            this.arithmetic.multiply(delta, tweenTarget.progress)
+          this.value = this.arithmetic.parse(
+            this.arithmetic.add(
+              startValue,
+              this.arithmetic.multiply(delta, tweenTarget.progress)
+            )
           );
         })
         .onComplete(this.onTweenCompleted.bind(this))

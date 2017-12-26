@@ -32,10 +32,6 @@ export class ColorArithmetic implements IArithmetic<Color> {
     return this.piggyback('equals', [c1, c2]);
   }
 
-  magnitude (c: Color): number {
-    return this.piggyback('magnitude', [c]);
-  }
-
   abs (c: Color): Color {
     return this.piggyback('abs', [c]);
   }
@@ -44,13 +40,18 @@ export class ColorArithmetic implements IArithmetic<Color> {
     return value instanceof Color;
   }
 
+  parse (value: any) {
+    return new Color(value);
+  }
+
   private piggyback (functionName: string, args: any[]) {
     const convertedArgs = args.map((arg) =>
       arg instanceof Color ? colorToVector(arg) : arg
     );
+
     const res = (this.vectorArithmetic as any)[functionName](...convertedArgs);
     if (Array.isArray(res)) {
-      return new Color(res.slice(0, 3)).alpha(res[3]);
+      res[3] = cap(res[3], 0, 1);
     }
     return res;
   }
@@ -58,4 +59,14 @@ export class ColorArithmetic implements IArithmetic<Color> {
 
 function colorToVector (c: Color): number[] {
   return [c.red(), c.green(), c.blue(), c.alpha()];
+}
+
+function cap (v: number, min: number, max: number) {
+  if (v < min) {
+    return min;
+  }
+  if (v > max) {
+    return max;
+  }
+  return v;
 }

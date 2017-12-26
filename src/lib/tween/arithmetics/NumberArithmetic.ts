@@ -28,15 +28,15 @@ export class NumberArithmetic implements IArithmetic<number> {
     return a === b;
   }
 
-  magnitude (a: number): number {
-    return Math.abs(a);
-  }
-
   abs (a: number): number {
     return Math.abs(a);
   }
 
   test (value: any): boolean {
     return typeof value === 'number';
+  }
+
+  parse (value: number) {
+    return value;
   }
 }
