@@ -1,28 +1,29 @@
 import {Application, Container, DisplayObject, Graphics, Text,
   TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
-import {commonColors} from './constants';
-import {getYogaValueTransformer, takeYogaEdgeValues, yogaEventNameMap} from './YogaHelpers';
-import {createBorderGraphics, createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
+import {getYogaValueTransformer, yogaEventNameMap} from './YogaHelpers';
 import * as Color from 'color';
 import {Tween} from './tween/Tween';
 import TweenInstruction from './tween/TweenInstruction';
 import {uniq} from 'lodash';
+import {definedOr, TweenableProps} from './helpers';
+import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
 
 const yoga = require('yoga-layout');
-
-type TweenableProps<T> = {
-  [P in keyof T]: Tween<T[P]>;
-};
 
 export class Surface {
   private isDestroyed: boolean;
   private mutableChildren: Surface[] = [];
-  private pixiContainer: Container;
-  private effectsContainer: Container;
-  private childContainer: Container;
   private cache = new Map<string, {hash: string, obj: any}>();
+
+  private pixiContainer: Container;
+  private background: SurfaceBackground;
+  private backgroundImage: SurfaceImage;
+  private border: SurfaceBorder;
+  private mask: SurfaceBorder;
+  private childContainer: Container;
   private pixiText: Text;
+
   public yogaNode: YogaNode;
   public parentNode: Surface;
   public id: number;
@@ -41,16 +42,19 @@ export class Surface {
     this.yogaNode = yoga.Node.create();
     this.pixiContainer = container || new Container();
 
-    // TODO optimize: minimize number of containers
     if (isText) {
       this.yogaNode.setMeasureFunc(this.measureText.bind(this));
       this.pixiText = new PIXI.Text();
       this.pixiContainer.addChild(this.pixiText);
     } else {
       this.childContainer = new Container();
-      this.effectsContainer = new Container();
-      this.pixiContainer.addChild(this.effectsContainer);
-      this.pixiContainer.addChild(this.childContainer);
+      this.pixiContainer.addChild(
+        this.background = new SurfaceBackground(),
+        this.backgroundImage = new SurfaceImage(),
+        this.border = new SurfaceBorder(),
+        this.mask = new SurfaceBorder(),
+        this.childContainer
+      );
     }
   }
 
@@ -120,6 +124,10 @@ export class Surface {
     return {...parentStyle, ...textStyle};
   }
 
+  get cachedCascadedTextStyle (): PIXI.TextStyleOptions {
+    return this.pullCache('textStyle', [this.textValue], () => this.cascadedTextStyle);
+  }
+
   get tweenableProps (): TweenableProps<SurfaceProps> {
     return new Proxy(this.tweens, {
       get: (target, key) => {
@@ -131,7 +139,7 @@ export class Surface {
   }
 
   measureText () {
-    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cascadedTextStyle));
+    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cachedCascadedTextStyle));
     return {
       width: measurement.maxLineWidth,
       height: measurement.lines.length * measurement.lineHeight
@@ -248,95 +256,38 @@ export class Surface {
     );
 
     if (this.pixiText) {
-      Object.assign(this.pixiText.style, this.cascadedTextStyle);
+      Object.assign(this.pixiText.style, this.cachedCascadedTextStyle);
     }
 
-    if (this.effectsContainer) {
-      for (const child of this.effectsContainer.children) {
-        this.effectsContainer.removeChild(child);
+    if (this.background) {
+      this.background.color = this.tweenableProps.backgroundColor.value;
+      this.background.scale.set(layout.width, layout.height);
+      this.background.mask = this.mask;
+    }
+
+    if (this.backgroundImage) {
+      this.backgroundImage.update(layout, this.tweenableProps);
+
+      // TODO centralized loader
+      if (this.backgroundImage.texture.baseTexture.isLoading) {
+        this.backgroundImage.texture.baseTexture.on('loaded', () => {
+          if (!this.isDestroyed) {
+            this.updatePixi();
+          }
+        });
       }
+    }
 
-      const style = {...this.props};
-      const borderRadius = definedOr(this.tweenableProps.borderRadius.value, 0);
-      const backgroundColor: Color = definedOr(this.tweenableProps.backgroundColor.value);
+    if (this.mask) {
+      this.mask.update(layout, this.tweenableProps);
+    }
 
-      let mask: Graphics;
-      const getMask = () => {
-        if (mask) {
-          return mask;
-        }
-        mask = this.pullCache('mask', [layout, borderRadius], () =>
-          createRectGraphics(layout, commonColors.transparent, borderRadius)
-        );
-        this.effectsContainer.addChild(mask);
-        return mask;
-      };
+    if (this.border) {
+      this.border.update(layout, this.tweenableProps);
+    }
 
-      if (backgroundColor !== undefined) {
-        this.effectsContainer.addChild(
-          this.pullCache('bgColor', [layout, backgroundColor, borderRadius], () =>
-            createRectGraphics(layout, backgroundColor, borderRadius)
-          )
-        );
-      }
-
-      const bgUrl = style.backgroundImage;
-      if (bgUrl !== undefined) {
-        const opacity = this.tweenableProps.backgroundOpacity.value;
-        const position = this.tweenableProps.backgroundPosition.value;
-        const size = this.tweenableProps.backgroundSize.value;
-
-        this.effectsContainer.addChild(
-          this.pullCache('bgImage', [layout, bgUrl, opacity, position, size], () => {
-            const sprite = Sprite.fromImage(bgUrl);
-            // TODO use central loader instead
-            if (sprite.texture.baseTexture.isLoading) {
-              sprite.texture.baseTexture.on('loaded', () => {
-                if (!this.isDestroyed) {
-                  this.updatePixi();
-                }
-              });
-            }
-
-            sprite.mask = getMask();
-            sprite.alpha = definedOr(this.tweenableProps.backgroundOpacity.value, 1);
-            resizeAndPositionSprite(sprite, layout, position, size);
-            return sprite;
-          })
-        );
-      }
-
-      const borderAll = this.tweenableProps.border.value;
-      const borderValues = [
-        definedOr(this.tweenableProps.borderTop.value, borderAll),
-        definedOr(this.tweenableProps.borderRight.value, borderAll),
-        definedOr(this.tweenableProps.borderBottom.value, borderAll),
-        definedOr(this.tweenableProps.borderLeft.value, borderAll)
-      ];
-
-      const borderColorAll = this.tweenableProps.borderColor.value;
-      const borderColorValues = [
-        definedOr(this.tweenableProps.borderColorTop.value, borderColorAll),
-        definedOr(this.tweenableProps.borderColorRight.value, borderColorAll),
-        definedOr(this.tweenableProps.borderColorBottom.value, borderColorAll),
-        definedOr(this.tweenableProps.borderColorLeft.value, borderColorAll)
-      ];
-
-      const hasBorder = borderValues.find((width) => width > 0);
-      if (hasBorder) {
-        this.effectsContainer.addChild(
-          this.pullCache('border', [layout, borderValues, borderColorValues], () =>
-            createBorderGraphics(
-              layout,
-              borderValues,
-              borderRadius,
-              borderColorValues
-            )
-          )
-        );
-      }
-
-      this.pixiContainer.mask = style.overflow === 'hidden' ? getMask() : undefined;
+    if (this.props.overflow === 'hidden') {
+      this.pixiContainer.mask = this.mask;
     }
   }
 
@@ -487,8 +438,4 @@ export class SurfaceRoot extends Surface {
     this.app.view.height = this.bounds.height;
     this.applyLayout();
   }
-}
-
-function definedOr<T> (value: T, fallbackValue?: T) {
-  return value !== undefined ? value : fallbackValue;
 }
