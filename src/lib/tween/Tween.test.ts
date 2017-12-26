@@ -51,15 +51,27 @@ function testArithmetic<TValue> (arithmetic: IArithmetic<TValue>) {
     expectArithmeticEqual(tween.value, arithmetic.single);
   });
 
-  it(`can tween with duration`, async () => {
+  it(`can tween positively with duration`, async () => {
     const tween = new Tween(arithmetic.zero);
     const target = arithmetic.multiply(arithmetic.single, 25);
     await expectDuration(tween.to(target), tween.options.duration);
   });
 
-  it(`can tween with speed`, async () => {
+  it(`can tween positively with speed`, async () => {
     const tween = new Tween(arithmetic.zero);
     const target = arithmetic.multiply(arithmetic.single, 25);
+    await expectDuration(tween.to(target, {speed: arithmetic.single}), 16 * 25);
+  });
+
+  it(`can tween negatively with duration`, async () => {
+    const tween = new Tween(arithmetic.zero);
+    const target = arithmetic.multiply(arithmetic.single, -25);
+    await expectDuration(tween.to(target), tween.options.duration);
+  });
+
+  it(`can tween negatively with speed`, async () => {
+    const tween = new Tween(arithmetic.zero);
+    const target = arithmetic.multiply(arithmetic.single, -25);
     await expectDuration(tween.to(target, {speed: arithmetic.single}), 16 * 25);
   });
 
@@ -68,7 +80,6 @@ function testArithmetic<TValue> (arithmetic: IArithmetic<TValue>) {
     const offValue = arithmetic.multiply(arithmetic.single, 5);
     const onValue = arithmetic.multiply(arithmetic.single, 10);
 
-    debugger;
     let endValue = await tween.toggle(offValue, onValue, true);
     expectArithmeticEqual(endValue, onValue);
 
