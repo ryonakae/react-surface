@@ -339,7 +339,7 @@ export class Surface {
     }
 
     this.pixiContainer.mask = this.props.overflow === 'hidden' ? this.mask : undefined;
-    this.pixiContainer.alpha = this.props.opacity || 1;
+    this.pixiContainer.alpha = definedOr(this.tweenableProps.opacity.value, 1);
   }
 
   pullCache<T> (id: string, control: any[], create: () => T): T {
