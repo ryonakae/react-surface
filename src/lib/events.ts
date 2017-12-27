@@ -22,7 +22,7 @@ for (const surfaceEventName in surfaceEvents) {
   pixiEvents[info.pixiName] = info;
 }
 
-export function diffEventProps<T> (prevProps: SurfaceProps, nextProps: SurfaceProps) {
+export function diffEventProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {
   const removed: {[key: string]: (e: interaction.InteractionEvent) => any} = {};
   const added: {[key: string]: (e: interaction.InteractionEvent) => any} = {};
   const changed: {[key: string]: [

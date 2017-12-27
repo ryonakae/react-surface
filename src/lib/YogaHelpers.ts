@@ -1,4 +1,3 @@
-import {interaction} from 'pixi.js';
 const yoga = require('yoga-layout');
 
 type YogaValueTransformerFn = (value: any) => any[];
