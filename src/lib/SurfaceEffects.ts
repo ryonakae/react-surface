@@ -118,7 +118,7 @@ export class SurfaceBorder extends Graphics {
     ];
 
     if (props.borderRadius.value > 0) {
-      const firstWidth = borderWidths.find((w) => w > 0);
+      const firstWidth = borderWidths.find((w) => w > 0) || 0;
       const firstColor = borderColors.find((c) => c !== undefined);
       this.drawRadius(size, firstWidth, firstColor, props.borderRadius.value);
     } else {
