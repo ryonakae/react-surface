@@ -1,12 +1,14 @@
 import {SurfaceComponentTree} from './SurfaceComponentTree';
 import {Surface, SurfaceRoot} from './Surface';
+import {uniq} from 'lodash';
+
 const createReconciler = require('react-reconciler');
 const now = require('performance-now');
 
 export function createSurfaceReconciler (
   root: SurfaceRoot,
   componentTree: SurfaceComponentTree,
-  createInstance: (type: string) => Surface
+  createInstance: (root: SurfaceRoot, type: string) => Surface
 ): ReactReconciler<SurfaceRoot> {
   return createReconciler({
     getRootHostContext (root: SurfaceRoot): HostContext {
@@ -30,7 +32,7 @@ export function createSurfaceReconciler (
     },
 
     createInstance (type: string, props: SurfaceProps, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
-      const instance = createInstance(type);
+      const instance = createInstance(root, type);
       instance.updateProps(props);
       componentTree.register(fiber, instance);
       return instance;
@@ -49,7 +51,15 @@ export function createSurfaceReconciler (
       newProps: SurfaceProps, root: SurfaceRoot, context: HostContext
     ) {
       // TODO optimize: diff props
-      return newProps;
+      const prevProps = {...instance.props};
+      const nextProps = {...newProps};
+      delete prevProps.children;
+      delete nextProps.children;
+
+      const changes = diff(prevProps, nextProps);
+      if (Object.keys(changes).length > 0) {
+        return changes;
+      }
     },
 
     shouldSetTextContent (type: string, props: SurfaceProps): boolean {
@@ -100,7 +110,7 @@ export function createSurfaceReconciler (
         parentInstance.insertBefore(child, beforeChild);
       },
 
-      insertInContainerBefore (container: SurfaceRoot, child: Surface, beforeChild: Surface,) {
+      insertInContainerBefore (container: SurfaceRoot, child: Surface, beforeChild: Surface) {
         container.insertBefore(child, beforeChild);
       },
 
@@ -114,7 +124,26 @@ export function createSurfaceReconciler (
         container.removeChild(child);
         componentTree.release(child);
         child.destroy();
-      },
+      }
     }
   });
+}
+
+function diff (a: SurfaceProps, b: SurfaceProps): SurfaceProps {
+  const propertyNames = uniq(Object.keys(a).concat(Object.keys(b)));
+  const changes: any = {};
+  for (const name of propertyNames) {
+    const prev = (a as any)[name];
+    const next = (b as any)[name];
+    if (prev && next) {
+      if (prev !== next) {
+        changes[name] = next;
+      }
+    } else if (prev && !next) {
+      changes[name] = undefined;
+    } else if (!prev && next) {
+      changes[name] = next;
+    }
+  }
+  return changes;
 }

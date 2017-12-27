@@ -5,7 +5,6 @@
   "author": "Kasper Sandin",
   "repository": "https://github.com/ksandin/react-surface",
   "dependencies": {
-    "bezier": "^0.1.0",
     "color": "2.0.1",
     "fbjs": "0.8.16",
     "lodash": "4.17.4",
@@ -23,7 +22,8 @@
     "stats.js": "0.17.0",
     "tween.js": "16.6.0",
     "webfontloader": "1.6.28",
-    "yoga-layout": "1.8.0"
+    "yoga-layout": "1.8.0",
+    "bezier-easing": "2.0.3"
   },
   "devDependencies": {
     "@types/color": "2.0.0",

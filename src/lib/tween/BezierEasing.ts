@@ -1,4 +1,4 @@
-const bezier = require('bezier');
+const createBezier = require('bezier-easing');
 
 export class BezierEasing {
   static presets = {
@@ -11,8 +11,11 @@ export class BezierEasing {
   };
 
   private points: number[];
+  public get: (t: number) => number;
+
   constructor (...points: number[]) {
     this.points = points;
+    this.get = createBezier(...points);
   }
 
   equals (other: BezierEasing) {
@@ -25,9 +28,5 @@ export class BezierEasing {
       }
     }
     return true;
-  }
-
-  get (x: number) {
-    return bezier(this.points, x);
   }
 }

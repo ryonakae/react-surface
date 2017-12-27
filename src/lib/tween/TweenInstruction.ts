@@ -26,4 +26,22 @@ export default class TweenInstruction<TValue> extends TweenInstructionProps<TVal
     extended.options = this.options ? this.options.extend(options) : options;
     return extended;
   }
+
+  equals (other: TweenInstruction<TValue>) {
+    if (!other) {
+      return false;
+    }
+
+    if (this.options && other.options) {
+      if (!this.options.equals(other.options)) {
+        return false;
+      }
+    } else if (this.options || other.options) {
+      return false;
+    }
+
+    return this.from === other.from &&
+      this.to === other.to &&
+      this.speed === other.speed;
+  }
 }

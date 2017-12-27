@@ -1,114 +1,33 @@
 import * as React from 'react';
 import {fonts} from './assets/fonts';
-import {observable, action} from 'mobx';
-import {observer} from 'mobx-react/custom';
-import {Box} from './Box';
-import * as PropTypes from 'prop-types';
 import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
 import * as Color from 'color';
+import {PropertyTweens} from './PropertyTweens';
 
-const sizes = [
-  'cover',
-  'contain',
-  '50%',
-  '100%',
-  ['50%', '100%'],
-  ['100%', '50%']
-];
-
-const positions = [
-  ['50%', '50%'],
-  [0, 0],
-  [50, 0],
-  [0, 50],
-  [50, 50],
-  ['0%', '100%'],
-  ['100%', '0%'],
-  ['75%', '25%'],
-  ['25%', '75%']
-];
-
-@observer
 export class App extends React.Component {
-  @observable isBoxVisible = true;
-  @observable isAlternate = false;
-  @observable sizeIndex = sizes.length;
-  @observable positionIndex = positions.length;
-
-  private keyUpEventHandler: any;
-
-  static childContextTypes = {
-    foo: PropTypes.string
-  };
-
-  getChildContext () {
-    return {
-      foo: this.isAlternate ?
-        'Alternate context from App' :
-        'Regular context from app'
-    };
-  }
-
-  componentWillMount () {
-    this.keyUpEventHandler = this.onKeyUp.bind(this);
-    window.addEventListener('keyup', this.keyUpEventHandler);
-  }
-
-  componentWillUnmount () {
-    window.removeEventListener('keyup', this.keyUpEventHandler);
-  }
-
   render () {
-    const throwAway = this.isAlternate; // tslint:disable-line
     return (
-      <surface style={styles.app}>
-        <surface style={styles.backLayer}/>
-        <Box
-          size={sizes[this.sizeIndex % sizes.length]}
-          position={positions[this.positionIndex % positions.length]}
-        />
+      <surface {...styles.app}>
+        <surface {...styles.backLayer}/>
+        <PropertyTweens/>
       </surface>
     );
-  }
-
-  @action
-  onKeyUp (e: KeyboardEvent) {
-    switch (e.key) {
-      case 'Backspace':
-        this.isAlternate = !this.isAlternate;
-        e.preventDefault();
-        break;
-      case '+':
-        if (e.shiftKey) {
-          this.sizeIndex += 1;
-        } else {
-          this.positionIndex += 1;
-        }
-        break;
-      case '-':
-        if (e.shiftKey) {
-          this.sizeIndex -= 1;
-        } else {
-          this.positionIndex -= 1;
-        }
-        break;
-    }
   }
 }
 
 const styles = SurfaceStyleSheet.create({
   app: {
-    width: 700,
-    height: 500,
+    width: 900,
+    height: 900,
     backgroundColor: Color.rgb('#102030'),
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 15,
-    text: {
-      fill: Color.rgb('#ffffff').rgbNumber(),
-      fontSize: 14,
-      fontFamily: fonts.Default
-    }
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    color: Color.rgb('#ffffff'),
+    fontSize: 14,
+    fontFamily: fonts.Default
   },
 
   backLayer: {

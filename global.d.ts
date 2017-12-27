@@ -1,22 +1,27 @@
 declare module JSX {
   interface IntrinsicElements {
-    text: SurfaceProps & {
-      style?: null
-    };
-    surface: SurfaceProps & {
-      children?: SurfaceChild | Array<SurfaceChild | Array<SurfaceChild>>
-    };
+    text: SurfaceProps & {style?: null};
+    surface: SurfaceProps;
   }
 }
 
 type CSSProps = React.CSSProperties;
 type Percentage = string; // TODO can typescript enforce percentage strings?
-type SurfaceColor = any; // TODO use 'color' package
-type SurfaceValue = number;
+type SurfaceTweenInstruction = any;
+type SurfaceValue = number | SurfaceTweenInstruction;
 type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
 type SurfaceChild = React.ReactElement<SurfaceProps>;
 type SurfaceStyle = YogaProps & RenderProps;
 type SurfaceStyleDict = {[key: string]: SurfaceStyle};
+
+// TODO use 'color' package
+type IColor = {
+  rgbNumber (): number;
+  red (): number;
+  green (): number;
+  blue (): number;
+  alpha (): number;
+};
 
 type Point = {
   x: number,
@@ -73,53 +78,61 @@ type YogaProps = {
   overflow?: 'visible' | 'hidden' | 'scroll';
 };
 
-type RenderProps = {
-  text?: PIXI.TextStyleOptions,
+type RenderProps = SurfaceTransform & {
+  color?: IColor;
+  textAlign?: 'start' | 'center' | 'end',
+  wordWrap?: boolean;
+  letterSpacing?: SurfaceValue;
+  fontFamily?: string | string[];
+  fontSize?: SurfaceValue;
+  fontStyle?: string;
+  fontWeight?: string;
 
   backgroundGradient?: any; // TODO type
-  backgroundColor?: SurfaceColor;
+  backgroundColor?: IColor;
   backgroundImage?: any;
   backgroundOpacity?: SurfaceValue,
   backgroundPosition?: Array<SurfaceValueP>;
   backgroundSize?: 'auto' | 'cover' | 'contain' | Percentage | Array<Percentage>;
 
-  borderRadius?: number;
-  borderColor?: SurfaceColor;
-  borderColorTop?: SurfaceColor;
-  borderColorRight?: SurfaceColor;
-  borderColorBottom?: SurfaceColor;
-  borderColorLeft?: SurfaceColor;
-
-  transform?: SurfaceTransform
+  borderRadius?: SurfaceValue;
+  borderColor?: IColor;
+  borderColorTop?: IColor;
+  borderColorRight?: IColor;
+  borderColorBottom?: IColor;
+  borderColorLeft?: IColor;
 };
 
 type SurfaceTransform = {
-  x?: number,
-  y?: number,
-  scaleX?: number,
-  scaleY?: number,
-  rotation?: number,
-  skewX?: number,
-  skewY?: number,
-  pivotX?: number,
-  pivotY?: number
+  translateX?: SurfaceValue,
+  translateY?: SurfaceValue,
+  scaleX?: SurfaceValue,
+  scaleY?: SurfaceValue,
+  rotation?: SurfaceValue,
+  skewX?: SurfaceValue,
+  skewY?: SurfaceValue,
+  pivotX?: SurfaceValue,
+  pivotY?: SurfaceValue
 };
 
-type SurfaceProps = {
-  // React internals
-  key?: string | number;
-  ref?: (surf: any) => void;
-  hidden?: boolean;
-
-  // Surface API
-  value?: string,
-  style?: SurfaceStyle,
+type SurfaceEvents = {
   onClick?: (e: PIXI.interaction.InteractionEvent) => void;
   onRightClick?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseUp?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseDown?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseEnter?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseLeave?: (e: PIXI.interaction.InteractionEvent) => void;
+};
+
+type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
+  // React internals
+  key?: string | number;
+  ref?: (surf: any) => void;
+  hidden?: boolean;
+  children?: SurfaceChild | Array<SurfaceChild | Array<SurfaceChild>>;
+
+  // Surface API
+  value?: string,
 };
 
 // TODO replace types below with actual types from react-reconciler and yoga-layout when they are available

@@ -1,41 +1,58 @@
-import {Application, Container, Graphics, Text, TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
+import {Application, Container, Text, TextMetrics, TextStyle, interaction} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
-import {commonColors} from './constants';
-import {getYogaValueTransformer, takeYogaEdgeValues, yogaEventNameMap} from './YogaHelpers';
-import {createBorderGraphics, createRectGraphics, resizeAndPositionSprite} from './RenderHelpers';
-import * as Color from 'color';
+import {getYogaValueTransformer, yogaEventNameMap} from './YogaHelpers';
 import {Tween} from './tween/Tween';
+import TweenInstruction from './tween/TweenInstruction';
+import {uniq} from 'lodash';
+import {definedOr, TweenableProps} from './helpers';
+import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
+
 const yoga = require('yoga-layout');
 
 export class Surface {
   private isDestroyed: boolean;
   private mutableChildren: Surface[] = [];
+  private cache = new Map<string, {hash: string, obj: any}>();
+
   private pixiContainer: Container;
-  private effectsContainer: Container;
+  private background: SurfaceBackground;
+  private backgroundImage: SurfaceImage;
+  private border: SurfaceBorder;
+  private mask: SurfaceBorder;
   private childContainer: Container;
   private pixiText: Text;
+
   public yogaNode: YogaNode;
   public parentNode: Surface;
   public id: number;
   public props: SurfaceProps = {};
+  public tweens: TweenableProps<SurfaceProps> = {};
 
   constructor (
+    public root: SurfaceRoot,
     isText: boolean = false,
     container?: Container
   ) {
+    if (this instanceof SurfaceRoot) {
+      this.root = this;
+    }
+
     this.yogaNode = yoga.Node.create();
     this.pixiContainer = container || new Container();
 
-    // TODO optimize: minimize number of containers
     if (isText) {
       this.yogaNode.setMeasureFunc(this.measureText.bind(this));
       this.pixiText = new PIXI.Text();
       this.pixiContainer.addChild(this.pixiText);
     } else {
       this.childContainer = new Container();
-      this.effectsContainer = new Container();
-      this.pixiContainer.addChild(this.effectsContainer);
-      this.pixiContainer.addChild(this.childContainer);
+      this.pixiContainer.addChild(
+        this.background = new SurfaceBackground(),
+        this.backgroundImage = new SurfaceImage(),
+        this.border = new SurfaceBorder(),
+        this.mask = new SurfaceBorder(),
+        this.childContainer
+      );
     }
   }
 
@@ -57,6 +74,8 @@ export class Surface {
     this.yogaNode.reset();
     this.pixiContainer.destroy();
     this.isDestroyed = true;
+    this.root.surfacesWithTweens.delete(this.id);
+    this.cache.clear();
   }
 
   get children () {
@@ -82,29 +101,59 @@ export class Surface {
     // TODO optimize: generate cascade on property changes instead of on request
     const parentStyle: any = this.parentNode ? {...this.parentNode.cascadedTextStyle} : {};
 
-    return {
-      ...parentStyle,
-      ...this.props.style && this.props.style.text
+    const color: IColor = this.tweenableProps.color.value;
+    const textStyle: PIXI.TextStyleOptions = {
+      fill: color ? color.rgbNumber() : undefined,
+      wordWrap: this.props.wordWrap !== undefined ? this.props.wordWrap : true,
+      align: this.props.textAlign,
+      letterSpacing: this.tweenableProps.letterSpacing.value,
+      fontFamily: this.props.fontFamily,
+      fontSize: this.tweenableProps.fontSize.value,
+      fontStyle: this.props.fontStyle,
+      fontWeight: this.props.fontWeight
     };
+
+    for (const key in textStyle) {
+      if ((textStyle as any)[key] === undefined) {
+        delete (textStyle as any)[key];
+      }
+    }
+
+    return {...parentStyle, ...textStyle};
+  }
+
+  get cachedCascadedTextStyle (): PIXI.TextStyleOptions {
+    return this.pullCache('textStyle', [this.textValue], () => this.cascadedTextStyle);
+  }
+
+  get tweenableProps (): TweenableProps<SurfaceProps> {
+    return new Proxy(this.tweens, {
+      get: (target, key) => {
+        return this.tweens.hasOwnProperty(key) ?
+          (this.tweens as any)[key] :
+            {value: (this.props as any)[key]};
+      }
+    });
   }
 
   measureText () {
-    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cascadedTextStyle));
+    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cachedCascadedTextStyle));
     return {
       width: measurement.maxLineWidth,
-      height: measurement.lines.length * measurement.lineHeight,
+      height: measurement.lines.length * measurement.lineHeight
     };
   }
 
-  updateProps (nextProps: SurfaceProps) {
+  updateProps (deltaProps: SurfaceProps) {
     const prevProps = this.props;
-    this.props = nextProps;
-    this.textValue = nextProps.value;
-    this.updateEvents(prevProps, nextProps);
-    this.updateYoga(nextProps.style);
+    this.props = Object.assign({}, this.props, deltaProps);
+    this.textValue = this.props.value;
+    this.updateEvents(prevProps, this.props);
+    this.updateTweenableProps(prevProps, this.props);
+    this.updateYoga();
   }
 
-  updateEvents (prevProps: SurfaceProps, nextProps: SurfaceProps): void {
+  updateEvents (prevProps: SurfaceProps, nextProps: SurfaceProps) {
     const {removed, added, changed} = diffEventProps(prevProps, nextProps);
 
     for (const name in removed) {
@@ -124,34 +173,59 @@ export class Surface {
     this.pixiContainer.interactive = this.pixiContainer.eventNames().length > 0;
   }
 
-  updateYoga (props: YogaProps = {}) {
-    const clonedProps = {...props};
+  updateTweenableProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {
+    const keys = uniq(Object.keys(prevProps).concat(Object.keys(nextProps)));
+
+    for (const key of keys) {
+      const prev = (prevProps as any)[key];
+      const next = (nextProps as any)[key];
+      let tween = (this.tweens as any)[key];
+
+      if (next instanceof TweenInstruction) {
+        if (prev instanceof Tween) {
+          tween = undefined;
+        }
+
+        // Mount
+        if (!tween) {
+          tween = new Tween(next.to, next.options);
+          tween.instruct(next);
+          (this.tweens as any)[key] = tween;
+        } else if (!next.equals(tween.lastInstruction)) {
+          tween.instruct(next);
+        }
+        continue;
+      }
+
+      if (next instanceof Tween) {
+        (this.tweens as any)[key] = tween;
+        continue;
+      }
+
+      if (tween && prev instanceof TweenInstruction) {
+        tween.stop();
+      }
+    }
+
+    if (Object.keys(this.tweens).length > 0) {
+      this.root.surfacesWithTweens.set(this.id, this);
+    } else {
+      this.root.surfacesWithTweens.delete(this.id);
+    }
+  }
+
+  updateYoga () {
     const yogaNode = this.yogaNode as any;
 
     if (this.pixiText) {
       yogaNode.markDirty();
     }
 
-    const borderValues = takeYogaEdgeValues(clonedProps, 'border');
-    for (const edge in borderValues) {
-      yogaNode.setBorder(edge, borderValues[edge]);
-    }
-
-    const paddingValues = takeYogaEdgeValues(clonedProps, 'padding');
-    for (const edge in paddingValues) {
-      yogaNode.setPadding(edge, paddingValues[edge]);
-    }
-
-    const marginValues = takeYogaEdgeValues(clonedProps, 'margin');
-    for (const edge in marginValues) {
-      yogaNode.setMargin(edge, marginValues[edge]);
-    }
-
-    for (const key in clonedProps) {
+    for (const key in this.props) {
       const transformer = getYogaValueTransformer(key);
       const setFn = yogaNode[transformer.functionName];
       if (setFn) {
-        const value = (clonedProps as any)[key];
+        const value = ((this.tweenableProps as any)[key] as Tween<any>).value;
         const args = transformer.transform(value);
         setFn.apply(yogaNode, args);
       }
@@ -161,81 +235,76 @@ export class Surface {
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
 
-    const t = this.props.style && this.props.style.transform || {};
-    this.pixiContainer.rotation = t.rotation || 0;
-    this.pixiContainer.skew.set(t.skewX || 0, t.skewY || 0);
-    this.pixiContainer.scale.set(t.scaleX || 1, t.scaleY || 1);
+    this.pixiContainer.rotation = this.tweenableProps.rotation.value || 0;
+    this.pixiContainer.skew.set(
+      definedOr(this.tweenableProps.skewX.value, 0),
+      definedOr(this.tweenableProps.skewY.value, 0)
+    );
+    this.pixiContainer.scale.set(
+      definedOr(this.tweenableProps.scaleX.value, 1),
+      definedOr(this.tweenableProps.scaleY.value, 1)
+    );
     this.pixiContainer.pivot.set(
-      t.pivotX !== undefined ? t.pivotX : (layout.width / 2),
-      t.pivotY !== undefined ? t.pivotY : (layout.height / 2)
+      definedOr(this.tweenableProps.pivotX.value, layout.width / 2),
+      definedOr(this.tweenableProps.pivotY.value, layout.height / 2)
     );
     this.pixiContainer.position.set(
-      layout.left + (t.x || 0) + this.pixiContainer.pivot.x,
-      layout.top + (t.y || 0) + this.pixiContainer.pivot.y
+      layout.left + definedOr(this.tweenableProps.translateX.value, 0) + this.pixiContainer.pivot.x,
+      layout.top + definedOr(this.tweenableProps.translateY.value, 0) + this.pixiContainer.pivot.y
     );
 
-
-    if (this.effectsContainer) {
-      // TODO don't clear, use lookup instead
-      for (const child of this.effectsContainer.children) {
-        this.effectsContainer.removeChild(child);
-      }
-
-      const style: SurfaceStyle = {...this.props.style};
-
-      let mask: Graphics;
-      const getMask = () => {
-        if (mask) {
-          return mask;
-        }
-        mask = createRectGraphics(layout, commonColors.transparent, style.borderRadius);
-        this.effectsContainer.addChild(mask);
-        return mask;
-      };
-
-      if (style.backgroundColor !== undefined) {
-        this.effectsContainer.addChild(
-          createRectGraphics(layout, style.backgroundColor, style.borderRadius)
-        );
-      }
-
-      if (style.backgroundImage !== undefined) {
-        const sprite = Sprite.fromImage(style.backgroundImage);
-        // TODO use central loader instead
-        if (sprite.texture.baseTexture.isLoading) {
-          sprite.texture.baseTexture.on('loaded', () => {
-            if (!this.isDestroyed) {
-              this.updatePixi();
-            }
-          });
-        }
-
-        sprite.mask = getMask();
-        sprite.alpha = style.backgroundOpacity || 1;
-        resizeAndPositionSprite(sprite, layout, style.backgroundPosition, style.backgroundSize);
-        this.effectsContainer.addChild(sprite);
-      }
-
-      const borderValues = takeYogaEdgeValues(style, 'border', true) as number[];
-      const hasBorder = borderValues.find((width) => width > 0);
-      if (hasBorder) {
-        const borderColorValues = takeYogaEdgeValues(style, 'borderColor', true) as Color[];
-        this.effectsContainer.addChild(
-          createBorderGraphics(
-            layout,
-            borderValues,
-            style.borderRadius,
-            borderColorValues
-          )
-        );
-      }
-
-      this.pixiContainer.mask = style.overflow === 'hidden' ? getMask() : undefined;
-    }
-
     if (this.pixiText) {
-      Object.assign(this.pixiText.style, this.cascadedTextStyle);
+      Object.assign(this.pixiText.style, this.cachedCascadedTextStyle);
     }
+
+    if (this.background) {
+      this.background.color = this.tweenableProps.backgroundColor.value;
+      this.background.scale.set(layout.width, layout.height);
+      this.background.mask = this.mask;
+    }
+
+    if (this.backgroundImage) {
+      this.backgroundImage.update(layout, this.tweenableProps);
+
+      // TODO centralized loader
+      if (this.backgroundImage.texture.baseTexture.isLoading) {
+        this.backgroundImage.texture.baseTexture.on('loaded', () => {
+          if (!this.isDestroyed) {
+            this.updatePixi();
+          }
+        });
+      }
+    }
+
+    if (this.mask) {
+      this.mask.update(layout, this.tweenableProps);
+    }
+
+    if (this.border) {
+      this.border.update(layout, this.tweenableProps);
+    }
+
+    if (this.props.overflow === 'hidden') {
+      this.pixiContainer.mask = this.mask;
+    }
+  }
+
+  pullCache<T> (id: string, control: any[], create: () => T): T {
+    const hash = JSON.stringify(control);
+    let cache = this.cache.get(id);
+    if (!cache) {
+      cache = {
+        hash,
+        obj: create()
+      };
+      this.cache.set(id, cache);
+    }
+
+    if (cache.hash !== hash) {
+      cache.obj = create();
+    }
+
+    return cache.obj as T;
   }
 
   appendChild (child: Surface) {
@@ -302,6 +371,8 @@ export class SurfaceRoot extends Surface {
   private bounds: {width: number, height: number};
   private target?: HTMLElement;
 
+  surfacesWithTweens: Map<number, Surface>;
+
   constructor (target: HTMLElement) {
     const app = new Application(target.clientWidth, target.clientHeight, {
       transparent: true,
@@ -310,11 +381,12 @@ export class SurfaceRoot extends Surface {
 
     target.appendChild(app.view);
 
-    super(false, app.stage);
+    super(null, false, app.stage);
 
+    this.surfacesWithTweens = new Map<number, Surface>();
     this.target = target;
     this.app = app;
-    this.app.ticker.add(Tween.update);
+    this.app.ticker.add(this.updateTweens.bind(this));
     this.updateBounds();
 
     if (typeof window !== undefined) {
@@ -331,13 +403,27 @@ export class SurfaceRoot extends Surface {
     this.applyLayout();
   }
 
-  applyLayout () {
+  private applyLayout () {
     this.yogaNode.calculateLayout(this.bounds.width, this.bounds.height, yoga.DIRECTION_LTR);
     const queue: Surface[] = [this];
     while (queue.length) {
       const next = queue.pop();
       next.updatePixi();
       queue.push(...next.children);
+    }
+  }
+
+  private updateTweens () {
+    Tween.update();
+
+    // TODO optimize: only apply layout when yoga values have been changed
+    if (this.surfacesWithTweens.size) {
+      this.applyLayout();
+    }
+
+    for (const surface of this.surfacesWithTweens.values()) {
+      surface.updateYoga();
+      surface.updatePixi();
     }
   }
 
