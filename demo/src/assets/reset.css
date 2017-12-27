@@ -77,6 +77,3 @@ table {
 .root {
     flex: 1;
 }
-
-.root:nth-of-type(1) { background: brown; }
-.root:nth-of-type(2) { background: blueviolet; }

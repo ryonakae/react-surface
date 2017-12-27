@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Color from 'color';
-import {Tween} from '../../src';
-import {observer} from 'mobx-react/custom';
+import {Tween} from '../../../src/index';
+import {observer} from 'mobx-react';
 import {observable, action} from 'mobx';
 
 @observer
@@ -34,7 +34,7 @@ export class Box extends React.Component<{
         for (const step of steps) {
           obj = obj[step] = (obj[step] || (obj[step] = {}));
         }
-        obj[last] = Tween.toggle(on, off, this.isOn);
+        obj[last] = Tween.sugar.toggle(on, off, this.isOn);
         return style;
       },
       {}
@@ -58,12 +58,11 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Color.rgb('#999222'),
-    backgroundImage: require('./assets/hat.png'),
+    backgroundImage: require('../assets/hat.png'),
     backgroundOpacity: 0.5,
-    backgroundSize: 'contain',
+    backgroundSize: 'cover',
     border: 10,
     borderColor: Color.rgb('#ff0000').alpha(0.5),
-    overflow: 'hidden'
   } as SurfaceStyle,
 
   inner: {

@@ -1,15 +1,29 @@
 import * as React from 'react';
 import {fonts} from './assets/fonts';
-import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
 import * as Color from 'color';
-import {PropertyTweens} from './PropertyTweens';
+import {observable, action} from 'mobx';
+import {observer} from 'mobx-react';
+import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
+import {ToastyList} from './ui/ToastyList';
+import {Toasty} from './state/Toasty';
+import {Button} from './ui/Button';
 
+@observer
 export class App extends React.Component {
+  @observable toasties: Toasty[] = [];
+
+  @action
+  spawnToasty () {
+    this.toasties.push(new Toasty());
+  }
+
   render () {
     return (
       <surface {...styles.app}>
-        <surface {...styles.backLayer}/>
-        <PropertyTweens/>
+        <surface {...styles.content}>
+          <Button label="Spawn Toasty" onClick={() => this.spawnToasty()}/>
+        </surface>
+        <ToastyList toasties={this.toasties}/>
       </surface>
     );
   }
@@ -17,12 +31,8 @@ export class App extends React.Component {
 
 const styles = SurfaceStyleSheet.create({
   app: {
-    width: 900,
-    height: 900,
-    backgroundColor: Color.rgb('#102030'),
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 15,
+    flexGrow: 1,
+    backgroundColor: Color.rgb('#000000'),
     flexWrap: 'wrap',
     flexDirection: 'row',
     color: Color.rgb('#ffffff'),
@@ -30,15 +40,7 @@ const styles = SurfaceStyleSheet.create({
     fontFamily: fonts.Default
   },
 
-  backLayer: {
-    backgroundColor: Color.rgb('#5498c4').alpha(0.5),
-    position: 'absolute',
-    top: 10, right: 10, bottom: 10, left: 10
-  },
-
-  frontLayer: {
-    backgroundColor: Color.rgb('#629c36').alpha(0.5),
-    position: 'absolute',
-    top: 35, right: 35, bottom: 35, left: 35
+  content: {
+    position: 'absolute'
   }
 });
