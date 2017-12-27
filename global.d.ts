@@ -8,12 +8,20 @@ declare module JSX {
 type CSSProps = React.CSSProperties;
 type Percentage = string; // TODO can typescript enforce percentage strings?
 type SurfaceTweenInstruction = any;
-type SurfaceColor = any; // TODO use 'color' package
 type SurfaceValue = number | SurfaceTweenInstruction;
 type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
 type SurfaceChild = React.ReactElement<SurfaceProps>;
 type SurfaceStyle = YogaProps & RenderProps;
 type SurfaceStyleDict = {[key: string]: SurfaceStyle};
+
+// TODO use 'color' package
+type IColor = {
+  rgbNumber (): number;
+  red (): number;
+  green (): number;
+  blue (): number;
+  alpha (): number;
+};
 
 type Point = {
   x: number,
@@ -71,7 +79,7 @@ type YogaProps = {
 };
 
 type RenderProps = SurfaceTransform & {
-  color?: SurfaceColor;
+  color?: IColor;
   textAlign?: 'start' | 'center' | 'end',
   wordWrap?: boolean;
   letterSpacing?: SurfaceValue;
@@ -81,18 +89,18 @@ type RenderProps = SurfaceTransform & {
   fontWeight?: string;
 
   backgroundGradient?: any; // TODO type
-  backgroundColor?: SurfaceColor;
+  backgroundColor?: IColor;
   backgroundImage?: any;
   backgroundOpacity?: SurfaceValue,
   backgroundPosition?: Array<SurfaceValueP>;
   backgroundSize?: 'auto' | 'cover' | 'contain' | Percentage | Array<Percentage>;
 
   borderRadius?: SurfaceValue;
-  borderColor?: SurfaceColor;
-  borderColorTop?: SurfaceColor;
-  borderColorRight?: SurfaceColor;
-  borderColorBottom?: SurfaceColor;
-  borderColorLeft?: SurfaceColor;
+  borderColor?: IColor;
+  borderColorTop?: IColor;
+  borderColorRight?: IColor;
+  borderColorBottom?: IColor;
+  borderColorLeft?: IColor;
 };
 
 type SurfaceTransform = {

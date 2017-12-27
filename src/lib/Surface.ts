@@ -1,8 +1,6 @@
-import {Application, Container, DisplayObject, Graphics, Text,
-  TextMetrics, TextStyle, interaction, Sprite} from 'pixi.js';
+import {Application, Container, Text, TextMetrics, TextStyle, interaction} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
 import {getYogaValueTransformer, yogaEventNameMap} from './YogaHelpers';
-import * as Color from 'color';
 import {Tween} from './tween/Tween';
 import TweenInstruction from './tween/TweenInstruction';
 import {uniq} from 'lodash';
@@ -103,7 +101,7 @@ export class Surface {
     // TODO optimize: generate cascade on property changes instead of on request
     const parentStyle: any = this.parentNode ? {...this.parentNode.cascadedTextStyle} : {};
 
-    const color: Color = this.tweenableProps.color.value;
+    const color: IColor = this.tweenableProps.color.value;
     const textStyle: PIXI.TextStyleOptions = {
       fill: color ? color.rgbNumber() : undefined,
       wordWrap: this.props.wordWrap !== undefined ? this.props.wordWrap : true,

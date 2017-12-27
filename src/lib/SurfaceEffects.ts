@@ -1,12 +1,11 @@
-import {Sprite, Graphics, Container} from 'pixi.js';
-import * as Color from 'color';
+import {Sprite, Graphics} from 'pixi.js';
 import {commonColors} from './constants';
 import {definedOr, TweenableProps} from './helpers';
 
 export class SurfaceBackground extends Graphics {
-  private currentColor: Color = commonColors.transparent;
+  private currentColor: IColor = commonColors.transparent;
 
-  set color (value: Color) {
+  set color (value: IColor) {
     if (value === undefined) {
       value = commonColors.transparent;
     }
@@ -127,7 +126,7 @@ export class SurfaceBorder extends Graphics {
     }
   }
 
-  drawSquare (size: Size, widths: number[], colors: Color[]) {
+  drawSquare (size: Size, widths: number[], colors: IColor[]) {
     this.clear();
 
     // Fill (for masking)
@@ -156,7 +155,7 @@ export class SurfaceBorder extends Graphics {
     this.endFill();
   }
 
-  drawRadius (size: Size, width: number, color: Color, radius: number) {
+  drawRadius (size: Size, width: number, color: IColor, radius: number) {
     const offset = width / 2;
     this.clear();
     this.lineStyle(width, color.rgbNumber(), color.alpha());
