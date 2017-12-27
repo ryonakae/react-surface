@@ -38,7 +38,6 @@ type YogaProps = {
   alignContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'stretch';
   alignItems?: 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
   alignSelf?: 'auto' | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
-  flex?: SurfaceValue;
   flexAlign?: any;
   flexBasis?: SurfaceValue;
   flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse';

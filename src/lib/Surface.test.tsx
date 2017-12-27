@@ -180,8 +180,8 @@ describe('Surface', () => {
   it(`can flex in row`, () => {
     const container = render(
       <surface {...{width: 100, height: 100, flexDirection: 'row'}}>
-        <surface {...{flex: 1}}/>
-        <surface {...{flex: 1}}/>
+        <surface {...{flexGrow: 1}}/>
+        <surface {...{flexGrow: 1}}/>
       </surface>
     );
 
@@ -195,8 +195,8 @@ describe('Surface', () => {
   it(`can flex in column`, () => {
     const container = render(
       <surface {...{width: 100, height: 100, flexDirection: 'column'}}>
-        <surface {...{flex: 1}}/>
-        <surface {...{flex: 1}}/>
+        <surface {...{flexGrow: 1}}/>
+        <surface {...{flexGrow: 1}}/>
       </surface>
     );
 
