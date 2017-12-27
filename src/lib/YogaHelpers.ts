@@ -116,15 +116,6 @@ export function getYogaNodeSetFunctionName (propertyName: string) {
   return 'set' + propertyName[0].toUpperCase() + propertyName.substr(1);
 }
 
-export const yogaEventNameMap: {[key: string]: interaction.InteractionEventTypes} = {
-  onClick: 'click',
-  onRightClick: 'rightclick',
-  onMouseDown: 'mousedown',
-  onMouseUp: 'mouseup',
-  onMouseEnter: 'mouseover',
-  onMouseLeave: 'mouseout'
-};
-
 type ValueTaker = (name: string, fallbackValue: any) => any;
 
 const edgeNames = ['Top', 'Right', 'Bottom', 'Left'];

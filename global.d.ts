@@ -122,6 +122,7 @@ type SurfaceEvents = {
   onMouseDown?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseEnter?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseLeave?: (e: PIXI.interaction.InteractionEvent) => void;
+  onSizeChanged?: (size: Size) => void;
 };
 
 type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
@@ -155,6 +156,15 @@ type ReactReconciler<TRoot> = {
   updateContainer<P> (element: React.ReactElement<P>, container: ReactContainer<TRoot>): void;
 };
 
+type YogaLayout = {
+  left: number,
+  top: number,
+  right: number,
+  bottom: number,
+  width: number,
+  height: number
+};
+
 type YogaNode = {
   reset (): void;
   getParent (): YogaNode;
@@ -163,7 +173,7 @@ type YogaNode = {
   insertChild (child: YogaNode, index?: number): void;
   removeChild (child: YogaNode): void;
   calculateLayout (width: number, height: number, direction: any): void;
-  getComputedLayout (): {left: number, top: number, right: number, bottom: number, width: number, height: number};
+  getComputedLayout (): YogaLayout;
   setMeasureFunc (fn: () => any): void;
   markDirty (): void;
 };

@@ -1,12 +1,11 @@
 import {Application, Container, Text, TextMetrics, TextStyle, DisplayObject, interaction} from 'pixi.js';
-import {diffEventProps} from './diffEventProps';
-import {getYogaValueTransformer, yogaEventNameMap} from './YogaHelpers';
+import {diffEventProps, pixiEvents, surfaceEvents} from './events';
+import {getYogaValueTransformer} from './YogaHelpers';
 import {Tween} from './tween/Tween';
 import TweenInstruction from './tween/TweenInstruction';
 import {uniq} from 'lodash';
 import {definedOr, TweenableProps} from './helpers';
 import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
-import get = Reflect.get;
 
 const yoga = require('yoga-layout');
 
@@ -28,6 +27,7 @@ export class Surface {
   public id: number;
   public props: SurfaceProps = {};
   public tweens: TweenableProps<SurfaceProps> = {};
+  private layout: YogaLayout;
 
   constructor (
     public root: SurfaceRoot,
@@ -171,7 +171,8 @@ export class Surface {
       this.addEventListener(name, added[name]);
     }
 
-    this.pixiContainer.interactive = this.pixiContainer.eventNames().length > 0;
+    this.pixiContainer.interactive = !!this.pixiContainer.eventNames()
+      .find((name) => pixiEvents[name].isInteractive);
   }
 
   updateTweenableProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {
@@ -281,6 +282,11 @@ export class Surface {
 
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
+    if (!this.layout || layout.width !== this.layout.width || layout.height !== this.layout.height) {
+      this.emitEvent('onSizeChanged', layout);
+    }
+
+    this.layout = layout;
 
     this.pixiContainer.rotation = this.tweenableProps.rotation.value || 0;
     this.pixiContainer.skew.set(
@@ -401,15 +407,15 @@ export class Surface {
   }
 
   protected addEventListener (name: string, handler: (e: interaction.InteractionEvent) => any) {
-    this.pixiContainer.addListener(yogaEventNameMap[name], handler);
+    this.pixiContainer.addListener(surfaceEvents[name].pixiName, handler);
   }
 
   protected removeEventListener (name: string, handler: (e: interaction.InteractionEvent) => any) {
-    this.pixiContainer.removeListener(yogaEventNameMap[name], handler);
+    this.pixiContainer.removeListener(surfaceEvents[name].pixiName, handler);
   }
 
   emitEvent (name: string, ...args: any[]) {
-    this.pixiContainer.emit(yogaEventNameMap[name], ...args);
+    this.pixiContainer.emit(surfaceEvents[name].pixiName, ...args);
   }
 }
 
