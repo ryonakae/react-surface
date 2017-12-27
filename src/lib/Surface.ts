@@ -10,7 +10,6 @@ import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
 const yoga = require('yoga-layout');
 
 export class Surface {
-  private isDestroyed: boolean;
   private mutableChildren: Surface[] = [];
   private cache = new Map<string, {hash: string, obj: any}>();
 
@@ -22,6 +21,7 @@ export class Surface {
   private childContainer: Container;
   private pixiText: Text;
 
+  public isDestroyed: boolean;
   public yogaNode: YogaNode;
   public parentNode: Surface;
   public id: number;
@@ -422,8 +422,11 @@ export class SurfaceRoot extends Surface {
     }
 
     for (const surface of this.surfacesWithTweens.values()) {
-      surface.updateYoga();
-      surface.updatePixi();
+      // HACK shouldn't have to check this, destroyed surfaces shouldn't be here
+      if (!surface.isDestroyed) {
+        surface.updateYoga();
+        surface.updatePixi();
+      }
     }
   }
 
