@@ -139,7 +139,8 @@ type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
 
 type FiberNode = {
   id: number;
-  stateNode: Element // TODO generate dom node equivalents of all surfaces to enable dev tool highlights
+  stateNode: Element; // TODO generate dom node equivalents of all surfaces to enable dev tool highlights
+  type: string;
 };
 
 type HostContext = {};

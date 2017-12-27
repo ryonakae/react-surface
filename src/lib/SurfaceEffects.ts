@@ -99,17 +99,19 @@ export class SurfaceImage extends Sprite {
 }
 
 export class SurfaceBorder extends Graphics {
-  update (size: Size, props: TweenableProps<SurfaceProps>) {
+  static getWidths (props: TweenableProps<SurfaceProps>) {
     const borderAll = definedOr(props.border.value, 0);
-    const borderColorAll = definedOr(props.borderColor.value, commonColors.transparent);
-
-    const borderWidths = [
+    return [
       definedOr(props.borderTop.value, borderAll),
       definedOr(props.borderRight.value, borderAll),
       definedOr(props.borderBottom.value, borderAll),
       definedOr(props.borderLeft.value, borderAll)
     ];
+  }
 
+  update (size: Size, props: TweenableProps<SurfaceProps>) {
+    const borderWidths = SurfaceBorder.getWidths(props);
+    const borderColorAll = definedOr(props.borderColor.value, commonColors.transparent);
     const borderColors = [
       definedOr(props.borderColorTop.value, borderColorAll),
       definedOr(props.borderColorRight.value, borderColorAll),

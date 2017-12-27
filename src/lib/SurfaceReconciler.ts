@@ -8,7 +8,7 @@ const now = require('performance-now');
 export function createSurfaceReconciler (
   root: SurfaceRoot,
   componentTree: SurfaceComponentTree,
-  createInstance: (root: SurfaceRoot, type: string) => Surface
+  createInstance: (root: SurfaceRoot, fiber: FiberNode) => Surface
 ): ReactReconciler<SurfaceRoot> {
   return createReconciler({
     getRootHostContext (root: SurfaceRoot): HostContext {
@@ -32,7 +32,7 @@ export function createSurfaceReconciler (
     },
 
     createInstance (type: string, props: SurfaceProps, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
-      const instance = createInstance(root, type);
+      const instance = createInstance(root, fiber);
       instance.updateProps(props);
       componentTree.register(fiber, instance);
       return instance;

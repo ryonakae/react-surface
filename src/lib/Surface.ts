@@ -1,4 +1,4 @@
-import {Application, Container, Text, TextMetrics, TextStyle, interaction} from 'pixi.js';
+import {Application, Container, Text, TextMetrics, TextStyle, DisplayObject, interaction} from 'pixi.js';
 import {diffEventProps} from './diffEventProps';
 import {getYogaValueTransformer, yogaEventNameMap} from './YogaHelpers';
 import {Tween} from './tween/Tween';
@@ -6,6 +6,7 @@ import TweenInstruction from './tween/TweenInstruction';
 import {uniq} from 'lodash';
 import {definedOr, TweenableProps} from './helpers';
 import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
+import get = Reflect.get;
 
 const yoga = require('yoga-layout');
 
@@ -13,8 +14,8 @@ export class Surface {
   private mutableChildren: Surface[] = [];
   private cache = new Map<string, {hash: string, obj: any}>();
 
-  private pixiContainer: Container;
-  private background: SurfaceBackground;
+  protected pixiContainer: Container;
+  private backgroundColor: SurfaceBackground;
   private backgroundImage: SurfaceImage;
   private border: SurfaceBorder;
   private mask: SurfaceBorder;
@@ -30,7 +31,7 @@ export class Surface {
 
   constructor (
     public root: SurfaceRoot,
-    isText: boolean = false,
+    fiber: FiberNode,
     container?: Container
   ) {
     if (this instanceof SurfaceRoot) {
@@ -40,19 +41,18 @@ export class Surface {
     this.yogaNode = yoga.Node.create();
     this.pixiContainer = container || new Container();
 
-    if (isText) {
+    if (fiber && fiber.type === 'text') {
       this.yogaNode.setMeasureFunc(this.measureText.bind(this));
       this.pixiText = new PIXI.Text();
       this.pixiContainer.addChild(this.pixiText);
     } else {
       this.childContainer = new Container();
-      this.pixiContainer.addChild(
-        this.background = new SurfaceBackground(),
-        this.backgroundImage = new SurfaceImage(),
-        this.border = new SurfaceBorder(),
-        this.mask = new SurfaceBorder(),
-        this.childContainer
-      );
+      this.childContainer.name = 'children';
+      this.pixiContainer.addChild(this.childContainer);
+    }
+
+    if (fiber) {
+      this.pixiContainer.name = fiber.type;
     }
   }
 
@@ -151,6 +151,7 @@ export class Surface {
     this.updateEvents(prevProps, this.props);
     this.updateTweenableProps(prevProps, this.props);
     this.updateYoga();
+    this.updateMount();
   }
 
   updateEvents (prevProps: SurfaceProps, nextProps: SurfaceProps) {
@@ -232,6 +233,52 @@ export class Surface {
     }
   }
 
+  updateMount () {
+    mount(
+      this.pixiContainer,
+      this.props.backgroundColor !== undefined,
+      () => this.backgroundColor,
+      (value) => this.backgroundColor = value,
+      () => new SurfaceBackground(),
+      () => this.childContainer
+    );
+
+    mount(
+      this.pixiContainer,
+      this.props.backgroundImage !== undefined,
+      () => this.backgroundImage,
+      (value) => this.backgroundImage = value,
+      () => new SurfaceImage(),
+      () => this.childContainer
+    );
+
+    mount(
+      this.pixiContainer,
+      SurfaceBorder.getWidths(this.tweenableProps).find((w) => w > 0),
+      () => this.border,
+      (value) => this.border = value,
+      () => new SurfaceBorder(),
+      () => this.childContainer
+    );
+
+    const needsMask = this.props.overflow === 'hidden' ||
+      this.props.backgroundImage !== undefined ||
+      (this.props.backgroundColor !== undefined && this.props.borderRadius !== undefined);
+
+    mount(
+      this.pixiContainer,
+      needsMask,
+      () => this.mask,
+      (value) => this.mask = value,
+      () => {
+        const mask = new SurfaceBorder();
+        mask.name = 'mask';
+        return mask;
+      },
+      () => this.childContainer
+    );
+  }
+
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
 
@@ -257,14 +304,15 @@ export class Surface {
       Object.assign(this.pixiText.style, this.cachedCascadedTextStyle);
     }
 
-    if (this.background) {
-      this.background.color = this.tweenableProps.backgroundColor.value;
-      this.background.scale.set(layout.width, layout.height);
-      this.background.mask = this.mask;
+    if (this.backgroundColor) {
+      this.backgroundColor.color = this.tweenableProps.backgroundColor.value;
+      this.backgroundColor.scale.set(layout.width, layout.height);
+      this.backgroundColor.mask = this.mask;
     }
 
     if (this.backgroundImage) {
       this.backgroundImage.update(layout, this.tweenableProps);
+      this.backgroundImage.mask = this.mask;
 
       // TODO centralized loader
       if (this.backgroundImage.texture.baseTexture.isLoading) {
@@ -284,10 +332,7 @@ export class Surface {
       this.border.update(layout, this.tweenableProps);
     }
 
-    if (this.props.overflow === 'hidden') {
-      this.pixiContainer.mask = this.mask;
-    }
-
+    this.pixiContainer.mask = this.props.overflow === 'hidden' ? this.mask : undefined;
     this.pixiContainer.alpha = this.props.opacity || 1;
   }
 
@@ -370,7 +415,6 @@ export class Surface {
 
 export class SurfaceRoot extends Surface {
   private app: Application;
-  private bounds: {width: number, height: number};
   private target?: HTMLElement;
 
   surfacesWithTweens: Map<number, Surface>;
@@ -383,7 +427,8 @@ export class SurfaceRoot extends Surface {
 
     target.appendChild(app.view);
 
-    super(null, false, app.stage);
+    super(null, null, app.stage);
+    this.pixiContainer.name = 'root';
 
     this.surfacesWithTweens = new Map<number, Surface>();
     this.target = target;
@@ -443,5 +488,28 @@ export class SurfaceRoot extends Surface {
       this.target.clientHeight
     );
     this.applyLayout();
+  }
+}
+
+function mount <T extends DisplayObject> (
+  container: Container,
+  shouldBeMounted: boolean,
+  getter: () => T,
+  setter: (value: T) => void,
+  creator: () => T,
+  before: () => DisplayObject
+) {
+  let obj = getter();
+  if (shouldBeMounted) {
+    if (!obj) {
+      obj = creator();
+      setter(obj);
+      container.addChildAt(obj, container.getChildIndex(before()));
+    }
+  } else {
+    if (obj) {
+      container.removeChild(obj);
+      setter(undefined);
+    }
   }
 }
