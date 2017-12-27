@@ -404,7 +404,12 @@ export class SurfaceRoot extends Surface {
   }
 
   private applyLayout () {
-    this.yogaNode.calculateLayout(this.bounds.width, this.bounds.height, yoga.DIRECTION_LTR);
+    this.yogaNode.calculateLayout(
+      this.app.view.width,
+      this.app.view.height,
+      yoga.DIRECTION_LTR
+    );
+
     const queue: Surface[] = [this];
     while (queue.length) {
       const next = queue.pop();
@@ -431,12 +436,10 @@ export class SurfaceRoot extends Surface {
   }
 
   updateBounds () {
-    this.bounds = {
-      width: this.target.clientWidth,
-      height: this.target.clientHeight
-    };
-    this.app.view.width = this.bounds.width;
-    this.app.view.height = this.bounds.height;
+    this.app.renderer.resize(
+      this.target.clientWidth,
+      this.target.clientHeight
+    );
     this.applyLayout();
   }
 }
