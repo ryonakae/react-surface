@@ -1,5 +1,5 @@
 import {Tween} from './Tween';
-import {presets} from './settings';
+import {defaultOptions} from './settings';
 import {IArithmetic} from './arithmetics/IArithmetic';
 import {NumberArithmetic} from './arithmetics/NumberArithmetic';
 import {ColorArithmetic} from './arithmetics/ColorArithmetic';
@@ -7,7 +7,7 @@ import {VectorArithmetic} from './arithmetics/VectorArithmetic';
 
 describe('Tween', () => {
   let keepTicking = false;
-  const originalDefaultDuration = presets.default.duration;
+  const originalDefaultDuration = defaultOptions.duration;
 
   function tick () {
     Tween.update();
@@ -17,13 +17,13 @@ describe('Tween', () => {
   }
 
   beforeEach(() => {
-    presets.default.duration = 100;
+    defaultOptions.duration = 100;
     keepTicking = true;
     tick();
   });
 
   afterEach(() => {
-    presets.default.duration = originalDefaultDuration;
+    defaultOptions.duration = originalDefaultDuration;
     keepTicking = false;
   });
 

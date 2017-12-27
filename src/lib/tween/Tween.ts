@@ -1,6 +1,7 @@
-import {presets, getArithmetic} from './settings';
+import {getArithmetic, defaultOptions} from './settings';
 import {TweenOptions} from './TweenOptions';
 import TweenInstruction, {TweenInstructionProps} from './TweenInstruction';
+import {TweenSugar} from './TweenSugar';
 const TWEEN = require('tween.js');
 
 export class Tween<TValue> {
@@ -11,7 +12,7 @@ export class Tween<TValue> {
 
   constructor (
     public value: TValue, 
-    public options: TweenOptions = presets.default
+    public options: TweenOptions = defaultOptions
   ) {}
   
   // TODO make sure arithmetic isn't changed
@@ -92,53 +93,22 @@ export class Tween<TValue> {
   }
 
   toggle (offValue: TValue, onValue: TValue, isOn: boolean, options?: TweenOptions) {
-    return this.instruct(Tween.toggle(offValue, onValue, isOn, options));
+    return this.instruct(Tween.sugar.toggle(offValue, onValue, isOn, options));
   }
 
   to (to: TValue, props: Partial<TweenInstructionProps<TValue>> = {}) {
-    return this.instruct(new TweenInstruction({to, ...props}));
+    return this.instruct(Tween.sugar.to(to, props));
   }
 
   from (from: TValue, props: Partial<TweenInstructionProps<TValue>> = {}) {
-    return this.instruct(new TweenInstruction({from, ...props}));
+    return this.instruct(Tween.sugar.from(from, props));
   }
 
   transition (from: TValue, to: TValue, props: Partial<TweenInstructionProps<TValue>> = {}) {
-    return this.instruct(new TweenInstruction({from, to, ...props}));
+    return this.instruct(Tween.sugar.transition(from, to, props));
   }
 
-
-  // Syntax sugar for common tween expressions
-
-  static toggle<TValue> (offValue: TValue, onValue: TValue, isOn: boolean, options?: TweenOptions) {
-    options = presets.default.extend(options);
-
-    const arithmetic = getArithmetic(offValue);
-    const toValue = isOn ? onValue : offValue;
-
-    if (arithmetic.equals(offValue, onValue)) {
-      // Optimise redundant toggles without breaking API (they're mostly misconfigurations)
-      return Tween.to(toValue, options.extend({duration: 0}));
-    }
-
-    // For relevant toggles we need to calculate a speed
-    const numberOfFrames = options.duration / 16;
-    const delta = arithmetic.abs(arithmetic.subtract(onValue, offValue));
-    const speed = arithmetic.scalarDivide(delta, numberOfFrames);
-    return new TweenInstruction({speed, options, to: toValue});
-  }
-
-  static to<TValue> (to: TValue, options?: TweenOptions) {
-    return new TweenInstruction({to, options});
-  }
-
-  static from<TValue> (from: TValue, options?: TweenOptions) {
-    return new TweenInstruction({from, options});
-  }
-
-  static transition<TValue> (from: TValue, to: TValue, options?: TweenOptions) {
-    return new TweenInstruction({from, to, options});
-  }
+  static sugar = new TweenSugar(defaultOptions);
 
   static update () {
     TWEEN.update();
