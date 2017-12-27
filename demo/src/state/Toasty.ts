@@ -1,3 +1,3 @@
 export class Toasty {
-  message: string
+  message: string;
 }

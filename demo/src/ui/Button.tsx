@@ -3,8 +3,6 @@ import {interaction} from 'pixi.js';
 import * as Color from 'color';
 import {observer} from 'mobx-react';
 import {observable, action} from 'mobx';
-import {Tween} from '../../../src';
-import TweenInstruction from '../../../src/lib/tween/TweenInstruction';
 import {tweenSugar} from './TweenPresets';
 
 @observer
