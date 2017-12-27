@@ -15,7 +15,7 @@ type SurfaceStyle = YogaProps & RenderProps;
 type SurfaceStyleDict = {[key: string]: SurfaceStyle};
 
 // TODO use 'color' package
-type IColor = {
+type IColor = SurfaceTweenInstruction | {
   rgbNumber (): number;
   red (): number;
   green (): number;
