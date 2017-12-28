@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {interaction} from 'pixi.js';
 import * as Color from 'color';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react/custom';
 import {observable, action} from 'mobx';
 import {tweenSugar} from './TweenPresets';
 
@@ -31,6 +31,7 @@ export class Button extends React.Component<{
         onMouseUp={this.setActive.bind(this, false)}
         onMouseEnter={this.setHovered.bind(this, true)}
         onMouseLeave={this.setHovered.bind(this, false)}
+        onClick={this.props.onClick}
       >
         <text value={this.props.label}/>
       </surface>
