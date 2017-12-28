@@ -104,7 +104,7 @@ export class Surface {
     const color: IColor = this.tweenableProps.color.value;
     const textStyle: PIXI.TextStyleOptions = {
       fill: color ? color.rgbNumber() : undefined,
-      wordWrap: this.props.wordWrap !== undefined ? this.props.wordWrap : true,
+      wordWrap: this.props.wordWrap,
       align: this.props.textAlign,
       letterSpacing: this.tweenableProps.letterSpacing.value,
       fontFamily: this.props.fontFamily,
