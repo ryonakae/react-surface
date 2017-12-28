@@ -200,7 +200,7 @@ export class Surface {
       }
 
       if (next instanceof Tween) {
-        (this.tweens as any)[key] = tween;
+        (this.tweens as any)[key] = next;
         continue;
       }
 
