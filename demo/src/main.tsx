@@ -6,8 +6,10 @@ import {AppContainer as HotLoaderContainer} from 'react-hot-loader';
 import {App} from './App';
 import {render as renderSurface, SurfaceRenderMemory} from '../../src/lib/render';
 import {useStrict} from 'mobx';
+import {ToastyStore} from './state/ToastyStore';
 
 useStrict(true);
+const store = new ToastyStore();
 
 // Load global assets
 loadFonts({
@@ -39,7 +41,7 @@ document.body.appendChild(domNode);
 
 const memory: SurfaceRenderMemory = {};
 function render (AppComponent: typeof App) {
-  let composedApp = <AppComponent />;
+  let composedApp = <AppComponent store={store} />;
   if (module.hot) {
     composedApp = (
       <AppContainer>

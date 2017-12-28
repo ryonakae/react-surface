@@ -1,29 +1,29 @@
 import * as React from 'react';
 import {fonts} from './assets/fonts';
 import * as Color from 'color';
-import {observable, action} from 'mobx';
-import {observer} from 'mobx-react';
 import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
-import {ToastyList} from './ui/ToastyList';
-import {Toasty} from './state/Toasty';
+import {ToastyOverlay} from './ui/ToastyOverlay';
 import {Button} from './ui/Button';
+import {ToastyStore} from './state/ToastyStore';
 
-@observer
-export class App extends React.Component {
-  @observable toasties: Toasty[] = [];
+export class App extends React.Component<{store: ToastyStore}> {
+  private behaviorDisposers: Array<() => void>;
 
-  @action
-  spawnToasty () {
-    this.toasties.push(new Toasty());
+  componentWillMount () {
+    this.behaviorDisposers = this.props.store.initializeBehavior();
+  }
+
+  componentWillUnmount () {
+    this.behaviorDisposers.forEach((dispose) => dispose());
   }
 
   render () {
     return (
       <surface {...styles.app}>
         <surface {...styles.content}>
-          <Button label="Spawn Toasty" onClick={() => this.spawnToasty()}/>
+          <Button label="Spawn Toasty" onClick={() => this.props.store.spawnToasty(false)}/>
         </surface>
-        <ToastyList toasties={this.toasties}/>
+        <ToastyOverlay toastyStore={this.props.store} style={styles.toastyOverlay}/>
       </surface>
     );
   }
@@ -42,5 +42,10 @@ const styles = SurfaceStyleSheet.create({
 
   content: {
     position: 'absolute'
+  },
+
+  toastyOverlay: {
+    position: 'absolute',
+    top: 0, right: 0, bottom: 0, left: 0
   }
 });
