@@ -9,13 +9,13 @@ import {SurfaceDevTools} from '../../src/lib/SurfaceDevTools';
 import {SurfaceStore} from '../../src/lib/SurfaceStore';
 
 export class App extends React.Component<{
-  store: ToastyStore,
-  stats: SurfaceStore
+  toastyStore: ToastyStore,
+  surfaceStore: SurfaceStore
 }> {
   private behaviorDisposers: Array<() => void>;
 
   componentWillMount () {
-    this.behaviorDisposers = this.props.store.initializeBehavior();
+    this.behaviorDisposers = this.props.toastyStore.initializeBehavior();
   }
 
   componentWillUnmount () {
@@ -26,10 +26,10 @@ export class App extends React.Component<{
     return (
       <surface {...styles.app}>
         <surface {...styles.content}>
-          <Button label="Spawn Toasty" onClick={() => this.props.store.spawnToasty(false)}/>
+          <Button label="Spawn Toasty" onClick={() => this.props.toastyStore.spawnToasty(false)}/>
         </surface>
-        <SurfaceDevTools stats={this.props.stats} style={styles.devTools}/>
-        <ToastyOverlay toastyStore={this.props.store} style={styles.toastyOverlay}/>
+        <SurfaceDevTools store={this.props.surfaceStore} style={styles.devTools}/>
+        <ToastyOverlay toastyStore={this.props.toastyStore} style={styles.toastyOverlay}/>
       </surface>
     );
   }
@@ -48,7 +48,7 @@ const styles = SurfaceStyleSheet.create({
 
   devTools: {
     position: 'absolute',
-    bottom: 0, left: 0
+    bottom: 10, left: 10
   },
 
   content: {

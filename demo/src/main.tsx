@@ -41,7 +41,7 @@ document.body.appendChild(domNode);
 const renderer = new SurfaceRenderer(domNode);
 
 function render (AppComponent: typeof App) {
-  let composedApp = <AppComponent stats={renderer.store} store={store} />;
+  let composedApp = <AppComponent surfaceStore={renderer.store} toastyStore={store} />;
   if (module.hot) {
     composedApp = (
       <AppContainer>
