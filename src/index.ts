@@ -1,2 +1,2 @@
-export {render} from './lib/render';
+export {SurfaceRenderer} from './lib/SurfaceRenderer';
 export {Tween} from './lib/tween/Tween';

@@ -139,7 +139,7 @@ type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
 // TODO replace types below with actual types from react-reconciler and yoga-layout when they are available
 
 type FiberNode = {
-  id: number;
+  _debugID: number;
   stateNode: Element; // TODO generate dom node equivalents of all surfaces to enable dev tool highlights
   type: string;
 };

@@ -5,8 +5,13 @@ import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
 import {ToastyOverlay} from './ui/ToastyOverlay';
 import {Button} from './ui/Button';
 import {ToastyStore} from './state/ToastyStore';
+import {SurfaceDevTools} from '../../src/lib/SurfaceDevTools';
+import {SurfaceStore} from '../../src/lib/SurfaceStore';
 
-export class App extends React.Component<{store: ToastyStore}> {
+export class App extends React.Component<{
+  store: ToastyStore,
+  stats: SurfaceStore
+}> {
   private behaviorDisposers: Array<() => void>;
 
   componentWillMount () {
@@ -23,6 +28,7 @@ export class App extends React.Component<{store: ToastyStore}> {
         <surface {...styles.content}>
           <Button label="Spawn Toasty" onClick={() => this.props.store.spawnToasty(false)}/>
         </surface>
+        <SurfaceDevTools stats={this.props.stats} style={styles.devTools}/>
         <ToastyOverlay toastyStore={this.props.store} style={styles.toastyOverlay}/>
       </surface>
     );
@@ -38,6 +44,11 @@ const styles = SurfaceStyleSheet.create({
     color: Color.rgb('#ffffff'),
     fontSize: 14,
     fontFamily: fonts.Default
+  },
+
+  devTools: {
+    position: 'absolute',
+    bottom: 0, left: 0
   },
 
   content: {

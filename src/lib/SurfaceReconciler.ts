@@ -1,4 +1,4 @@
-import {SurfaceComponentTree} from './SurfaceComponentTree';
+import {SurfaceStore} from './SurfaceStore';
 import {Surface, SurfaceRoot} from './Surface';
 import {uniq} from 'lodash';
 
@@ -7,7 +7,7 @@ const now = require('performance-now');
 
 export function createSurfaceReconciler (
   root: SurfaceRoot,
-  componentTree: SurfaceComponentTree,
+  store: SurfaceStore,
   createInstance: (root: SurfaceRoot, fiber: FiberNode) => Surface
 ): ReactReconciler<SurfaceRoot> {
   return createReconciler({
@@ -34,7 +34,7 @@ export function createSurfaceReconciler (
     createInstance (type: string, props: SurfaceProps, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
       const instance = createInstance(root, fiber);
       instance.updateProps(props);
-      componentTree.register(fiber, instance);
+      store.register(fiber, instance);
       return instance;
     },
 
@@ -116,13 +116,21 @@ export function createSurfaceReconciler (
 
       removeChild (parentInstance: Surface, child: Surface) {
         parentInstance.removeChild(child);
-        componentTree.release(child);
+
+        // Release child and its sub tree
+        const queue = [child];
+        while (queue.length) {
+          const next = queue.pop();
+          store.release(next);
+          queue.push(...next.children);
+        }
+
         child.destroy();
       },
 
       removeChildFromContainer (container: SurfaceRoot, child: Surface) {
         container.removeChild(child);
-        componentTree.release(child);
+        store.release(child);
         child.destroy();
       }
     }

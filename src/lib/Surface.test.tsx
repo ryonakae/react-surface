@@ -1,24 +1,21 @@
 import * as React from 'react';
-import {render as renderSurface, SurfaceRenderMemory} from './render';
+import {SurfaceRenderer} from './SurfaceRenderer';
 
 describe('Surface', () => {
-  let memory: SurfaceRenderMemory = {};
-  let domNode: HTMLDivElement;
-
-  function render (element: React.ReactElement<{}>) {
-    const container = renderSurface(element, domNode, memory);
-    return container.containerInfo.children[0];
-  }
+  let renderer: SurfaceRenderer;
+  let render: SurfaceRenderer['render'];
 
   beforeEach(() => {
-    domNode = document.createElement('div');
+    const domNode = document.createElement('div');
     domNode.style.width = '800px';
     domNode.style.height = '600px';
+
+    renderer = new SurfaceRenderer(domNode);
+    render = renderer.render.bind(renderer);
   });
 
   afterEach(() => {
-    memory.root.destroy();
-    memory = {};
+    renderer.unmount();
   });
 
   // Surfaces

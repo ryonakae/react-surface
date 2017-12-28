@@ -4,7 +4,7 @@ import {load as loadFonts} from 'webfontloader';
 import {fonts} from './assets/fonts';
 import {AppContainer as HotLoaderContainer} from 'react-hot-loader';
 import {App} from './App';
-import {render as renderSurface, SurfaceRenderMemory} from '../../src/lib/render';
+import {SurfaceRenderer} from '../../src';
 import {useStrict} from 'mobx';
 import {ToastyStore} from './state/ToastyStore';
 
@@ -38,10 +38,10 @@ class AppContainer extends React.Component {
 const domNode = document.createElement('div');
 domNode.className = 'root';
 document.body.appendChild(domNode);
+const renderer = new SurfaceRenderer(domNode);
 
-const memory: SurfaceRenderMemory = {};
 function render (AppComponent: typeof App) {
-  let composedApp = <AppComponent store={store} />;
+  let composedApp = <AppComponent stats={renderer.store} store={store} />;
   if (module.hot) {
     composedApp = (
       <AppContainer>
@@ -49,7 +49,7 @@ function render (AppComponent: typeof App) {
       </AppContainer>
     );
   }
-  renderSurface(composedApp, domNode, memory);
+  renderer.render(composedApp);
 }
 
 function initApp () {
