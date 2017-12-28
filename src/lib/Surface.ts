@@ -12,7 +12,6 @@ const yoga = require('yoga-layout');
 
 export class Surface {
   private mutableChildren: Surface[] = [];
-  private cache = new Map<string, {hash: string, obj: any}>();
 
   protected pixiContainer: Container;
   private backgroundColor: SurfaceBackground;
@@ -76,7 +75,6 @@ export class Surface {
     this.pixiContainer.destroy();
     this.isDestroyed = true;
     this.root.surfacesWithTweens.delete(this.id);
-    this.cache.clear();
   }
 
   get children () {
@@ -123,10 +121,6 @@ export class Surface {
     return {...parentStyle, ...textStyle};
   }
 
-  get cachedCascadedTextStyle (): PIXI.TextStyleOptions {
-    return this.pullCache('textStyle', [this.textValue], () => this.cascadedTextStyle);
-  }
-
   get tweenableProps (): TweenableProps<SurfaceProps> {
     return new Proxy(this.tweens, {
       get: (target, key) => {
@@ -138,7 +132,7 @@ export class Surface {
   }
 
   measureText () {
-    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cachedCascadedTextStyle));
+    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cascadedTextStyle));
     return {
       width: measurement.maxLineWidth,
       height: measurement.lines.length * measurement.lineHeight
@@ -308,7 +302,7 @@ export class Surface {
     );
 
     if (this.pixiText) {
-      Object.assign(this.pixiText.style, this.cachedCascadedTextStyle);
+      Object.assign(this.pixiText.style, this.cascadedTextStyle);
     }
 
     if (this.backgroundColor) {
@@ -341,24 +335,6 @@ export class Surface {
 
     this.pixiContainer.mask = this.props.overflow === 'hidden' ? this.mask : undefined;
     this.pixiContainer.alpha = definedOr(this.tweenableProps.opacity.value, 1);
-  }
-
-  pullCache<T> (id: string, control: any[], create: () => T): T {
-    const hash = JSON.stringify(control);
-    let cache = this.cache.get(id);
-    if (!cache) {
-      cache = {
-        hash,
-        obj: create()
-      };
-      this.cache.set(id, cache);
-    }
-
-    if (cache.hash !== hash) {
-      cache.obj = create();
-    }
-
-    return cache.obj as T;
   }
 
   appendChild (child: Surface) {
