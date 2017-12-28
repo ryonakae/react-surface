@@ -10,16 +10,10 @@ export class SurfaceDevTools extends React.Component<{
   style?: SurfaceStyle
 }> {
   @observable isMinimized: boolean = true;
-  @observable isHovered: boolean = false;
 
   @action
   toggle () {
     this.isMinimized = !this.isMinimized;
-  }
-
-  @action
-  hover (isHovered: boolean) {
-    this.isHovered = isHovered;
   }
 
   render () {
@@ -29,12 +23,7 @@ export class SurfaceDevTools extends React.Component<{
     };
 
     return (
-      <surface
-        {...style}
-        onClick={() => this.toggle()}
-        onMouseEnter={() => this.hover(true)}
-        onMouseLeave={() => this.hover(false)}
-      >
+      <surface {...style} onClick={() => this.toggle()}>
         {
           this.isMinimized ?
             <ToggleButton/> :
