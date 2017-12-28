@@ -10,7 +10,7 @@ type Percentage = string; // TODO can typescript enforce percentage strings?
 type SurfaceTweenInstruction = any;
 type SurfaceValue = number | SurfaceTweenInstruction;
 type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
-type SurfaceChild = React.ReactElement<SurfaceProps>;
+type SurfaceChild = React.ReactElement<SurfaceProps> | React.ReactNode;
 type SurfaceStyle = YogaProps & RenderProps;
 type SurfaceStyleDict = {[key: string]: SurfaceStyle};
 
