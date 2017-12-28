@@ -1,5 +1,5 @@
 import {TweenOptions} from './TweenOptions';
-import {getArithmetic} from './settings';
+import {defaultOptions, getArithmetic} from './settings';
 import TweenInstruction, {TweenInstructionProps} from './TweenInstruction';
 
 export class TweenSugar {
@@ -43,4 +43,6 @@ export class TweenSugar {
     const extendedOptions = this.options.extend(options);
     return new TweenInstruction({to, from, ...rest, options: extendedOptions});
   }
+
+  static default = new TweenSugar(defaultOptions);
 }

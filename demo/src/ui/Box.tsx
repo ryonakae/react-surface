@@ -1,8 +1,8 @@
 import * as React from 'react';
 import * as Color from 'color';
-import {Tween} from '../../../src/index';
-import {observer} from 'mobx-react';
+import {observer} from 'mobx-react/custom';
 import {observable, action} from 'mobx';
+import {TweenSugar} from '../../../src/lib/tween/TweenSugar';
 
 @observer
 export class Box extends React.Component<{
@@ -34,7 +34,7 @@ export class Box extends React.Component<{
         for (const step of steps) {
           obj = obj[step] = (obj[step] || (obj[step] = {}));
         }
-        obj[last] = Tween.sugar.toggle(on, off, this.isOn);
+        obj[last] = TweenSugar.default.toggle(on, off, this.isOn);
         return style;
       },
       {}

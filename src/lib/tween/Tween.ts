@@ -93,22 +93,20 @@ export class Tween<TValue> {
   }
 
   toggle (offValue: TValue, onValue: TValue, isOn: boolean, options?: TweenOptions) {
-    return this.instruct(Tween.sugar.toggle(offValue, onValue, isOn, options));
+    return this.instruct(TweenSugar.default.toggle(offValue, onValue, isOn, options));
   }
 
   to (to: TValue, props: Partial<TweenInstructionProps<TValue>> = {}) {
-    return this.instruct(Tween.sugar.to(to, props));
+    return this.instruct(TweenSugar.default.to(to, props));
   }
 
   from (from: TValue, props: Partial<TweenInstructionProps<TValue>> = {}) {
-    return this.instruct(Tween.sugar.from(from, props));
+    return this.instruct(TweenSugar.default.from(from, props));
   }
 
   transition (from: TValue, to: TValue, props: Partial<TweenInstructionProps<TValue>> = {}) {
-    return this.instruct(Tween.sugar.transition(from, to, props));
+    return this.instruct(TweenSugar.default.transition(from, to, props));
   }
-
-  static sugar = new TweenSugar(defaultOptions);
 
   static update () {
     TWEEN.update();
