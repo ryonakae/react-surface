@@ -11,7 +11,7 @@ export class SurfaceRenderer {
 
   constructor (target: HTMLElement) {
     this.store = new SurfaceStore();
-    this.root = new SurfaceRoot(target);
+    this.root = new SurfaceRoot(target, this.store);
 
     this.reconciler = createSurfaceReconciler(
       this.root, this.store, (root, fiber) => new Surface(root, fiber)

@@ -6,6 +6,7 @@ import TweenInstruction from './tween/TweenInstruction';
 import {uniq} from 'lodash';
 import {definedOr, TweenableProps} from './helpers';
 import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
+import {SurfaceStore} from './SurfaceStore';
 
 const yoga = require('yoga-layout');
 
@@ -421,11 +422,12 @@ export class Surface {
 
 export class SurfaceRoot extends Surface {
   private app: Application;
-  private target?: HTMLElement;
+  private target: HTMLElement;
+  private store: SurfaceStore;
 
   surfacesWithTweens: Map<number, Surface>;
 
-  constructor (target: HTMLElement) {
+  constructor (target: HTMLElement, store: SurfaceStore) {
     const app = new Application(target.clientWidth, target.clientHeight, {
       transparent: true,
       antialias: true
@@ -436,6 +438,7 @@ export class SurfaceRoot extends Surface {
     super(null, null, app.stage);
     this.pixiContainer.name = 'root';
 
+    this.store = store;
     this.surfacesWithTweens = new Map<number, Surface>();
     this.target = target;
     this.app = app;
@@ -472,7 +475,8 @@ export class SurfaceRoot extends Surface {
   }
 
   private updateTweens () {
-    Tween.update();
+    const activeTweens = Tween.update();
+    this.store.updateTweenCount(activeTweens.length);
 
     // TODO optimize: only apply layout when yoga values have been changed
     if (this.surfacesWithTweens.size) {

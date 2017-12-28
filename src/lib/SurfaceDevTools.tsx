@@ -11,6 +11,7 @@ export class SurfaceDevTools extends React.Component<{
     return (
       <surface {...this.props.style}>
         <text value={'surfaces: ' + this.props.stats.surfaceCount}/>
+        <text value={'tweens: ' + this.props.stats.tweenCount}/>
       </surface>
     );
   }

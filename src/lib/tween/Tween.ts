@@ -4,8 +4,12 @@ import TweenInstruction, {TweenInstructionProps} from './TweenInstruction';
 import {TweenSugar} from './TweenSugar';
 const TWEEN = require('tween.js');
 
+let idCounter = 0;
+
 export class Tween<TValue> {
-  private tween?: TWEEN.Tween;
+  public readonly id = idCounter += 1;
+
+  private internalTween?: TWEEN.Tween;
   private resolvers: Array<(value: TValue) => void> = [];
 
   lastInstruction: TweenInstruction<TValue>;
@@ -21,16 +25,17 @@ export class Tween<TValue> {
   }
 
   private onTweenCompleted () {
-    delete this.tween;
+    delete (this.internalTween as any).__owner;
+    delete this.internalTween;
     while (this.resolvers.length) {
       this.resolvers.pop()(this.value);
     }
   }
 
   stop () {
-    if (this.tween) {
-      this.tween.stop();
-      delete this.tween;
+    if (this.internalTween) {
+      this.internalTween.stop();
+      delete this.internalTween;
     }
   }
 
@@ -64,12 +69,13 @@ export class Tween<TValue> {
       }
 
       const tweenTarget = {progress: 0};
-      this.tween = new TWEEN.Tween(tweenTarget);
+      this.internalTween = new TWEEN.Tween(tweenTarget);
+      (this.internalTween as any).__owner = this;
 
       const startValue = this.value;
       const delta = this.arithmetic.subtract(inst.to, startValue);
 
-      this.tween
+      this.internalTween
         .easing(inst.options.easing.get.bind(inst.options.easing))
         .delay(inst.options.delay)
         .to({progress: 1}, duration)
@@ -108,7 +114,10 @@ export class Tween<TValue> {
     return this.instruct(TweenSugar.default.transition(from, to, props));
   }
 
-  static update () {
+  static update (): Tween<any>[] {
     TWEEN.update();
+    return TWEEN.getAll().map(
+      (internalTween: TWEEN.Tween) => (internalTween as any).__owner
+    );
   }
 }

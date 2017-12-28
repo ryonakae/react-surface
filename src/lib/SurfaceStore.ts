@@ -5,6 +5,7 @@ export class SurfaceStore {
   private idCounter = 0;
   @observable private fibersBySurfaceId = new Map<number, FiberNode>();
   @observable private surfacesByFiberId = new Map<number, Surface>();
+  @observable tweenCount = 0;
 
   @computed get surfaceCount () {
     return Array.from(this.surfacesByFiberId.keys()).length;
@@ -28,6 +29,11 @@ export class SurfaceStore {
     const fiber = this.fibersBySurfaceId.get(surface.id);
     this.surfacesByFiberId.delete(fiber._debugID);
     this.fibersBySurfaceId.delete(surface.id);
+  }
+
+  @action
+  updateTweenCount (count: number) {
+    this.tweenCount = count;
   }
 
   findFiberByHostInstance (hostInstance: any): FiberNode {
