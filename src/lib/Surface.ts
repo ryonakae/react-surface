@@ -4,7 +4,7 @@ import {getYogaValueTransformer} from './YogaHelpers';
 import {Tween} from './tween/Tween';
 import TweenInstruction from './tween/TweenInstruction';
 import {uniq} from 'lodash';
-import {definedOr, TweenableProps} from './helpers';
+import {definedOr, GettableProps, TweenableProps} from './helpers';
 import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
 import {SurfaceStore} from './SurfaceStore';
 
@@ -20,14 +20,15 @@ export class Surface {
   private mask: SurfaceBorder;
   private childContainer: Container;
   private pixiText: Text;
+  private layout: YogaLayout;
+  private textStyleGetters: GettableProps<PIXI.TextStyleOptions> = {};
+  private tweens: TweenableProps<SurfaceProps> = {};
 
+  public id: number;
   public isDestroyed: boolean;
   public yogaNode: YogaNode;
   public parentNode: Surface;
-  public id: number;
   public props: SurfaceProps = {};
-  public tweens: TweenableProps<SurfaceProps> = {};
-  private layout: YogaLayout;
 
   constructor (
     public root: SurfaceRoot,
@@ -97,28 +98,14 @@ export class Surface {
   }
 
   get cascadedTextStyle (): PIXI.TextStyleOptions {
-    // TODO optimize: generate cascade on property changes instead of on request
-    const parentStyle: any = this.parentNode instanceof SurfaceRoot ? {} : {...this.parentNode.cascadedTextStyle};
-
-    const color: IColor = this.tweenableProps.color.value;
-    const textStyle: PIXI.TextStyleOptions = {
-      fill: color ? color.rgbNumber() : undefined,
-      wordWrap: this.props.wordWrap,
-      align: this.props.textAlign,
-      letterSpacing: this.tweenableProps.letterSpacing.value,
-      fontFamily: this.props.fontFamily,
-      fontSize: this.tweenableProps.fontSize.value,
-      fontStyle: this.props.fontStyle,
-      fontWeight: this.props.fontWeight
-    };
-
-    for (const key in textStyle) {
-      if ((textStyle as any)[key] === undefined) {
-        delete (textStyle as any)[key];
+    const textStyle = {};
+    for (const key in this.textStyleGetters) {
+      const value = (this.textStyleGetters as any)[key]();
+      if (value !== undefined) {
+        (textStyle as any)[key] = value;
       }
     }
-
-    return {...parentStyle, ...textStyle};
+    return textStyle;
   }
 
   get tweenableProps (): TweenableProps<SurfaceProps> {
@@ -145,6 +132,7 @@ export class Surface {
     this.textValue = this.props.value;
     this.updateEvents(prevProps, this.props);
     this.updateTweenableProps(prevProps, this.props);
+    this.cascadeTextStyleGetters(); // TODO only cascade on text style changes
     this.updateYoga();
     this.updateMount();
   }
@@ -208,6 +196,39 @@ export class Surface {
       this.root.surfacesWithTweens.set(this.id, this);
     } else {
       this.root.surfacesWithTweens.delete(this.id);
+    }
+  }
+
+  createTextStyleGetters (): GettableProps<PIXI.TextStyleOptions> {
+    return {
+      wordWrap: () => this.props.wordWrap,
+      align: () => this.props.textAlign,
+      letterSpacing: () => this.tweenableProps.letterSpacing.value,
+      fontFamily: () => this.props.fontFamily,
+      fontSize: () => this.tweenableProps.fontSize.value,
+      fontStyle: () => this.props.fontStyle,
+      fontWeight: () => this.props.fontWeight,
+      fill: () => {
+        const color = this.tweenableProps.color.value;
+        return color && color.rgbNumber();
+      },
+    };
+  }
+
+  cascadeTextStyleGetters () {
+    const parentGetters = this.parentNode ? this.parentNode.textStyleGetters : {};
+    this.textStyleGetters = this.createTextStyleGetters();
+    for (const key in this.textStyleGetters) {
+      const getter = (this.textStyleGetters as any)[key];
+      const parentGetter = (parentGetters as any)[key];
+      const value = getter();
+      const parentValue = parentGetter && parentGetter();
+      if (value === undefined && parentValue !== undefined) {
+        (this.textStyleGetters as any)[key] = parentGetter;
+      }
+    }
+    for (const child of this.children) {
+      child.cascadeTextStyleGetters();
     }
   }
 
@@ -348,6 +369,8 @@ export class Surface {
 
     this.mutableChildren.push(child);
     child.parentNode = this;
+
+    child.cascadeTextStyleGetters();
   }
 
   insertBefore (child: Surface, beforeChild: Surface) {
@@ -363,6 +386,8 @@ export class Surface {
     index = this.mutableChildren.indexOf(beforeChild);
     this.mutableChildren.splice(index, 0, child);
     child.parentNode = this;
+
+    child.cascadeTextStyleGetters();
   }
 
   removeChild (child: Surface) {

@@ -7,3 +7,7 @@ export function definedOr<T> (value: T, fallbackValue?: T) {
 export type TweenableProps<T> = {
   [P in keyof T]: Tween<T[P]>;
 };
+
+export type GettableProps<T> = {
+  [P in keyof T]: () => T[P];
+};
