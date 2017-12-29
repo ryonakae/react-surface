@@ -64,7 +64,7 @@ export class LifecycleTransitionGroup extends React.Component<Props> {
         throw new Error('Every child needs a unique key');
       }
 
-      let transition: Transition = this.transitions.get(key);
+      let transition = this.transitions.get(key);
 
       // Added
       if (!transition) {
@@ -122,8 +122,8 @@ class Transition {
   key: any;
   state: TransitionState = TransitionState.NotMounted;
   instance?: Instance;
-  @observable element?: React.ReactElement<any>;
-  @observable expired?: boolean;
+  @observable element: React.ReactElement<any>;
+  @observable expired: boolean;
 
   get canEnter () {
     return this.state !== TransitionState.Entering && this.state !== TransitionState.Entered;

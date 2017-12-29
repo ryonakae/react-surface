@@ -127,8 +127,8 @@ export function createSurfaceReconciler (
         const queue = [child];
         while (queue.length) {
           const next = queue.pop();
-          store.release(next);
-          queue.push(...next.children);
+          store.release(next!);
+          queue.push(...next!.children);
         }
 
         child.destroy();

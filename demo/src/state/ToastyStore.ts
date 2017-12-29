@@ -102,11 +102,11 @@ export class ToastyStore {
 
       // Show new presentations
       reaction(
-        () => [this.currentPresentation, this.canStartNewPresentation],
-        ([toasty, allowed]: [Toasty, boolean]) => {
-          if (toasty && allowed) {
+        () => ({toasty: this.currentPresentation, allowed: this.canStartNewPresentation}),
+        (payload) => {
+          if (payload.toasty && payload.allowed) {
             this.cooldownPresentation();
-            this.progress(toasty);
+            this.progress(payload.toasty);
           }
         },
         true
@@ -131,9 +131,9 @@ export class ToastyStore {
 
       // Queue new toasties automatically
       reaction(
-        () => [this.currentPresentation, this.canStartNewPresentation],
-        ([toasty, allowed]: [Toasty, boolean]) => {
-          if (!toasty && allowed) {
+        () => ({toasty: this.currentPresentation, allowed: this.canStartNewPresentation}),
+        (payload) => {
+          if (!payload.toasty && payload.allowed) {
             this.spawnToasty();
           }
         },

@@ -27,7 +27,7 @@ export class SurfaceStore {
   @action
   release (surface: Surface) {
     const fiber = this.fibersBySurfaceId.get(surface.id);
-    this.surfacesByFiberId.delete(fiber._debugID);
+    this.surfacesByFiberId.delete(fiber!._debugID);
     this.fibersBySurfaceId.delete(surface.id);
   }
 
@@ -36,7 +36,7 @@ export class SurfaceStore {
     this.tweenCount = count;
   }
 
-  findFiberByHostInstance (hostInstance: any): FiberNode {
+  findFiberByHostInstance (hostInstance: any) {
     // TODO optimize: don't do linear search
     const surface = Object.values(this.surfacesByFiberId)
       .find((surface) => surface.hostInstance === hostInstance);
@@ -46,14 +46,14 @@ export class SurfaceStore {
   }
 
   findHostInstanceByFiber (fiber: FiberNode): any {
-    return this.findSurfaceByFiber(fiber).hostInstance;
+    return this.findSurfaceByFiber(fiber)!.hostInstance;
   }
 
-  findFiberBySurface (instance: Surface): FiberNode {
+  findFiberBySurface (instance: Surface) {
     return this.fibersBySurfaceId.get(instance.id);
   }
 
-  findSurfaceByFiber (fiber: FiberNode): Surface {
+  findSurfaceByFiber (fiber: FiberNode) {
     return this.surfacesByFiberId.get(fiber._debugID);
   }
 }

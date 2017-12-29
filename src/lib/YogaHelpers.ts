@@ -41,6 +41,7 @@ const mixedYogaValueTransformers: {[key: string]: YogaValueTransformerFn | YogaV
         case 'relative': return [yoga.POSITION_TYPE_RELATIVE];
         case 'absolute': return [yoga.POSITION_TYPE_ABSOLUTE];
       }
+      throw new Error('Position not supported: ' + value);
     }
   },
 

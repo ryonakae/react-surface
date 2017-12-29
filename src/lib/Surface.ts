@@ -14,28 +14,30 @@ export class Surface {
   private mutableChildren: Surface[] = [];
 
   protected pixiContainer: Container;
-  private backgroundColor: SurfaceBackground;
-  private backgroundImage: SurfaceImage;
-  private border: SurfaceBorder;
-  private mask: SurfaceBorder;
+  private backgroundColor?: SurfaceBackground;
+  private backgroundImage?: SurfaceImage;
+  private border?: SurfaceBorder;
+  private mask?: SurfaceBorder;
   private childContainer: Container;
-  private pixiText: Text;
-  private layout: YogaLayout;
+  private pixiText?: Text;
+  private layout?: YogaLayout;
   private textStyleGetters: GettableProps<PIXI.TextStyleOptions> = {};
   private tweens: TweenableProps<SurfaceProps> = {};
 
   public id: number;
   public isDestroyed: boolean;
   public yogaNode: YogaNode;
-  public parentNode: Surface;
+  public parentNode?: Surface;
   public props: SurfaceProps = {};
-  public textValue: string;
+  public textValue?: string;
+  public root: SurfaceRoot;
 
   constructor (
-    public root: SurfaceRoot,
-    type: string,
+    root?: SurfaceRoot,
+    type?: string,
     container?: Container
   ) {
+    this.root = root!;
     this.yogaNode = yoga.Node.create();
 
     if (type === 'text') {
@@ -49,7 +51,7 @@ export class Surface {
       this.pixiContainer.addChild(this.childContainer);
     }
 
-    this.pixiContainer.name = type;
+    this.pixiContainer.name = type!;
   }
 
   destroy () {
@@ -70,7 +72,7 @@ export class Surface {
     this.yogaNode.reset();
     this.pixiContainer.destroy();
     this.isDestroyed = true;
-    this.root.surfacesWithTweens.delete(this.id);
+    this.root!.surfacesWithTweens.delete(this.id);
   }
 
   get children () {
@@ -103,7 +105,7 @@ export class Surface {
   }
 
   measureText () {
-    const measurement = TextMetrics.measureText(this.pixiText.text, new TextStyle(this.cascadedTextStyle));
+    const measurement = TextMetrics.measureText(this.pixiText!.text, new TextStyle(this.cascadedTextStyle));
     return {
       width: measurement.maxLineWidth,
       height: measurement.lines.length * measurement.lineHeight
@@ -276,7 +278,7 @@ export class Surface {
     if (this.pixiText) {
       if (this.pixiText.text !== this.textValue) {
         this.yogaNode.markDirty();
-        this.pixiText.text = this.textValue;
+        this.pixiText.text = this.textValue!;
       }
     }
   }
@@ -314,12 +316,12 @@ export class Surface {
     if (this.backgroundColor) {
       this.backgroundColor.color = this.tweenableProps.backgroundColor.value;
       this.backgroundColor.scale.set(layout.width, layout.height);
-      this.backgroundColor.mask = this.mask;
+      this.backgroundColor.mask = this.mask!;
     }
 
     if (this.backgroundImage) {
       this.backgroundImage.update(layout, this.tweenableProps);
-      this.backgroundImage.mask = this.mask;
+      this.backgroundImage.mask = this.mask!;
 
       // TODO centralized loader
       if (this.backgroundImage.texture.baseTexture.isLoading) {
@@ -339,7 +341,7 @@ export class Surface {
       this.border.update(layout, this.tweenableProps);
     }
 
-    this.pixiContainer.mask = this.props.overflow === 'hidden' ? this.mask : undefined;
+    this.pixiContainer.mask = (this.props.overflow === 'hidden' ? this.mask : undefined) as any;
     this.pixiContainer.alpha = definedOr(this.tweenableProps.opacity.value, 1);
   }
 
@@ -421,7 +423,7 @@ export class SurfaceRoot extends Surface {
 
     target.appendChild(app.view);
 
-    super(null, 'root', app.stage);
+    super(undefined, 'root', app.stage);
 
     this.root = this;
     this.store = store;
@@ -456,8 +458,8 @@ export class SurfaceRoot extends Surface {
     const queue: Surface[] = [this];
     while (queue.length) {
       const next = queue.pop();
-      next.updatePixi();
-      queue.push(...next.children);
+      next!.updatePixi();
+      queue.push(...next!.children);
     }
   }
 
@@ -491,8 +493,8 @@ export class SurfaceRoot extends Surface {
 function mount <T extends DisplayObject> (
   container: Container,
   shouldBeMounted: boolean,
-  getter: () => T,
-  setter: (value: T) => void,
+  getter: () => T | undefined,
+  setter: (value?: T) => void,
   creator: () => T,
   before: () => DisplayObject
 ) {

@@ -28,7 +28,7 @@ export class Tween<TValue> {
     delete (this.internalTween as any).__owner;
     delete this.internalTween;
     while (this.resolvers.length) {
-      this.resolvers.pop()(this.value);
+      this.resolvers.pop()!(this.value);
     }
   }
 
@@ -54,7 +54,7 @@ export class Tween<TValue> {
     return new Promise<TValue>((resolve) => {
       this.resolvers.push(resolve);
 
-      let duration = inst.options.duration;
+      let duration = inst.options!.duration;
 
       if (inst.speed !== undefined) {
         const delta = this.arithmetic.abs(
@@ -75,9 +75,9 @@ export class Tween<TValue> {
       const startValue = this.value;
       const delta = this.arithmetic.subtract(inst.to, startValue);
 
-      this.internalTween
-        .easing(inst.options.easing.get.bind(inst.options.easing))
-        .delay(inst.options.delay)
+      this.internalTween!
+        .easing(inst.options!.easing.get.bind(inst.options!.easing))
+        .delay(inst.options!.delay)
         .to({progress: 1}, duration)
         .onUpdate(() => {
           this.value = this.arithmetic.parse(

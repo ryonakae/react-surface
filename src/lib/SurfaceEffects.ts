@@ -44,7 +44,7 @@ export class SurfaceImage extends Sprite {
     let scaleY = 1;
 
     // Determine scale
-    let percentage: {x: number, y: number};
+    let percentage: {x: number, y: number} | undefined;
     if (typeof size === 'string') {
       const p = this.getPercentage(size, -1);
       if (p !== -1) {

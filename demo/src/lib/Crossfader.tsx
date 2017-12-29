@@ -9,7 +9,7 @@ export class Crossfader extends React.Component<{
     return (
       <LifecycleTransitionGroup>
         {[
-          <FadeTransition key={this.props.children.key}>
+          <FadeTransition key={this.props.children.key as any}>
             {this.props.children}
           </FadeTransition>
         ]}

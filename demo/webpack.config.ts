@@ -21,7 +21,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
 
   const config: webpack.Configuration = {
     // What code to build and where to put it
-    entry: compact([
+    entry: compact<string>([
       path.join(sourceFolder, 'polyfills', 'index.ts'),
       options.hmr && 'react-hot-loader/patch',
       path.join(sourceFolder, 'main.tsx')
@@ -116,6 +116,6 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
   return config;
 }
 
-function compact <T> (array: T[]) {
-  return array.filter((item) => item);
+function compact <T> (array: Array<T | false>) {
+  return array.filter((item) => !!item) as T[];
 }

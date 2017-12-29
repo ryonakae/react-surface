@@ -4,7 +4,7 @@ import {SurfaceStore} from './SurfaceStore';
 import {Surface, SurfaceRoot} from './Surface';
 
 export class SurfaceRenderer {
-  public readonly container?: ReactContainer<SurfaceRoot>;
+  public readonly container: ReactContainer<SurfaceRoot>;
   public readonly reconciler: ReactReconciler<SurfaceRoot>;
   public readonly store: SurfaceStore;
   public readonly root: SurfaceRoot;

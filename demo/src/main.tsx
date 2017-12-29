@@ -20,7 +20,7 @@ loadFonts({
 
 class AppContainer extends React.Component {
   componentWillMount () {
-    module.hot.accept('./App', () => {
+    module.hot!.accept('./App', () => {
       const NextApp = require<{App: typeof App}>('./App').App;
       render(NextApp);
     });
