@@ -98,7 +98,7 @@ export class Surface {
 
   get cascadedTextStyle (): PIXI.TextStyleOptions {
     // TODO optimize: generate cascade on property changes instead of on request
-    const parentStyle: any = this.parentNode ? {...this.parentNode.cascadedTextStyle} : {};
+    const parentStyle: any = this.parentNode instanceof SurfaceRoot ? {} : {...this.parentNode.cascadedTextStyle};
 
     const color: IColor = this.tweenableProps.color.value;
     const textStyle: PIXI.TextStyleOptions = {
