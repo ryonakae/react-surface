@@ -33,7 +33,7 @@ export class Button extends React.Component<{
         onMouseLeave={this.setHovered.bind(this, false)}
         onClick={this.props.onClick}
       >
-        <text value={this.props.label}/>
+        {this.props.label}
       </surface>
     );
   }

@@ -39,7 +39,7 @@ class Button extends React.Component<{
         onMouseEnter={() => this.isHovered = true}
         onMouseLeave={() => this.isHovered = false}
       >
-        <text value={this.props.label} />
+        {this.props.label}
       </surface>
     );
   }

@@ -72,7 +72,7 @@ export class ToastyItem extends React.Component<{
       <surface {...style} onClick={this.onClick.bind(this)}>
         <Crossfader>
           <surface key={this.displayedMessage} onSizeChanged={this.transitionWidth.bind(this)}>
-            <text value={this.displayedMessage}/>
+            {this.displayedMessage}
           </surface>
         </Crossfader>
       </surface>

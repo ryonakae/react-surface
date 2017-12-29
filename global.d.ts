@@ -1,6 +1,6 @@
 declare module JSX {
   interface IntrinsicElements {
-    text: SurfaceProps & {style?: null};
+    text: SurfaceProps;
     surface: SurfaceProps;
   }
 }
@@ -131,9 +131,6 @@ type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
   ref?: (surf: any) => void;
   hidden?: boolean;
   children?: SurfaceChild | Array<SurfaceChild | Array<SurfaceChild>>;
-
-  // Surface API
-  value?: string,
 };
 
 // TODO replace types below with actual types from react-reconciler and yoga-layout when they are available

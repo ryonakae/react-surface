@@ -43,7 +43,7 @@ export class Box extends React.Component<{
     return (
       <surface {...Object.assign({}, styles.box, style)}>
         <surface {...styles.inner}>
-          <text value={label}/>
+          {label}
         </surface>
       </surface>
     );

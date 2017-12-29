@@ -14,7 +14,7 @@ export class SurfaceRenderer {
     this.root = new SurfaceRoot(target, this.store);
 
     this.reconciler = createSurfaceReconciler(
-      this.root, this.store, (root, fiber) => new Surface(root, fiber)
+      this.root, this.store, (root, type) => new Surface(root, type)
     );
 
     this.reconciler.injectIntoDevTools({

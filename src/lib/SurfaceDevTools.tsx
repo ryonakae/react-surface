@@ -36,16 +36,21 @@ export class SurfaceDevTools extends React.Component<{
 
 const ToggleButton = () => (
   <surface>
-    <text value="DevTools"/>
+    DevTools
   </surface>
 );
 
-const SurfaceStats = ({store}: {store: SurfaceStore}) => (
-  <surface>
-    <text value={'surfaces: ' + store.surfaceCount}/>
-    <text value={'tweens: ' + store.tweenCount}/>
-  </surface>
-);
+@observer
+class SurfaceStats extends React.Component<{store: SurfaceStore}> {
+  render () {
+    return (
+      <surface>
+        surfaces: {this.props.store.surfaceCount}
+        tweens: {this.props.store.tweenCount}
+      </surface>
+    );
+  }
+}
 
 const styles = {
   devTools: {

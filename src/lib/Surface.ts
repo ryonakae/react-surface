@@ -29,32 +29,27 @@ export class Surface {
   public yogaNode: YogaNode;
   public parentNode: Surface;
   public props: SurfaceProps = {};
+  public textValue: string;
 
   constructor (
     public root: SurfaceRoot,
-    fiber: FiberNode,
+    type: string,
     container?: Container
   ) {
-    if (this instanceof SurfaceRoot) {
-      this.root = this;
-    }
-
     this.yogaNode = yoga.Node.create();
-    this.pixiContainer = container || new Container();
 
-    if (fiber && fiber.type === 'text') {
+    if (type === 'text') {
       this.yogaNode.setMeasureFunc(this.measureText.bind(this));
       this.pixiText = new PIXI.Text();
-      this.pixiContainer.addChild(this.pixiText);
+      this.pixiContainer = this.pixiText;
     } else {
+      this.pixiContainer = container || new Container();
       this.childContainer = new Container();
       this.childContainer.name = 'children';
       this.pixiContainer.addChild(this.childContainer);
     }
 
-    if (fiber) {
-      this.pixiContainer.name = fiber.type;
-    }
+    this.pixiContainer.name = type;
   }
 
   destroy () {
@@ -86,17 +81,6 @@ export class Surface {
     return this.pixiContainer;
   }
 
-  get textValue () {
-    return this.pixiText && this.pixiText.text;
-  }
-
-  set textValue (text: string) {
-    if (this.pixiText) {
-      this.pixiText.text = text;
-      this.yogaNode.markDirty();
-    }
-  }
-
   get cascadedTextStyle (): PIXI.TextStyleOptions {
     const textStyle = {};
     for (const key in this.textStyleGetters) {
@@ -126,15 +110,14 @@ export class Surface {
     };
   }
 
-  updateProps (deltaProps: SurfaceProps) {
+  updateProps (deltaProps: SurfaceProps = {}) {
     const prevProps = this.props;
     this.props = Object.assign({}, this.props, deltaProps);
-    this.textValue = this.props.value;
+    this.updateMount();
     this.updateEvents(prevProps, this.props);
     this.updateTweenableProps(prevProps, this.props);
     this.cascadeTextStyleGetters(); // TODO only cascade on text style changes
     this.updateYoga();
-    this.updateMount();
   }
 
   updateEvents (prevProps: SurfaceProps, nextProps: SurfaceProps) {
@@ -234,11 +217,6 @@ export class Surface {
 
   updateYoga () {
     const yogaNode = this.yogaNode as any;
-
-    if (this.pixiText) {
-      yogaNode.markDirty();
-    }
-
     for (const key in this.props) {
       const transformer = getYogaValueTransformer(key);
       const setFn = yogaNode[transformer.functionName];
@@ -294,6 +272,13 @@ export class Surface {
       },
       () => this.childContainer
     );
+
+    if (this.pixiText) {
+      if (this.pixiText.text !== this.textValue) {
+        this.yogaNode.markDirty();
+        this.pixiText.text = this.textValue;
+      }
+    }
   }
 
   updatePixi () {
@@ -436,13 +421,14 @@ export class SurfaceRoot extends Surface {
 
     target.appendChild(app.view);
 
-    super(null, null, app.stage);
-    this.pixiContainer.name = 'root';
+    super(null, 'root', app.stage);
 
+    this.root = this;
     this.store = store;
     this.surfacesWithTweens = new Map<number, Surface>();
     this.target = target;
     this.app = app;
+
     this.app.ticker.add(this.updateTweens.bind(this));
     this.updateBounds();
 

@@ -8,7 +8,7 @@ const now = require('performance-now');
 export function createSurfaceReconciler (
   root: SurfaceRoot,
   store: SurfaceStore,
-  createInstance: (root: SurfaceRoot, fiber: FiberNode) => Surface
+  createInstance: (root: SurfaceRoot, type: string) => Surface
 ): ReactReconciler<SurfaceRoot> {
   return createReconciler({
     getRootHostContext (root: SurfaceRoot): HostContext {
@@ -32,7 +32,7 @@ export function createSurfaceReconciler (
     },
 
     createInstance (type: string, props: SurfaceProps, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
-      const instance = createInstance(root, fiber);
+      const instance = createInstance(root, type);
       instance.updateProps(props);
       store.register(fiber, instance);
       return instance;
@@ -71,7 +71,11 @@ export function createSurfaceReconciler (
     },
 
     createTextInstance (text: string, root: SurfaceRoot, context: HostContext, fiber: FiberNode) {
-      // noop
+      const instance = createInstance(root, 'text');
+      instance.textValue = text;
+      instance.updateProps();
+      store.register(fiber, instance);
+      return instance;
     },
 
     now: () => now(),
@@ -91,11 +95,13 @@ export function createSurfaceReconciler (
       },
 
       resetTextContent (instance: Surface) {
-        instance.textValue = '';
+        instance.textValue = undefined;
+        instance.updateProps();
       },
 
-      commitTextUpdate (element: Surface, oldText: string, newText: string) {
-        element.textValue = newText;
+      commitTextUpdate (instance: Surface, oldText: string, newText: string) {
+        instance.textValue = newText;
+        instance.updateProps();
       },
 
       appendChild (parentInstance: Surface, child: Surface) {

@@ -128,14 +128,14 @@ describe('Surface', () => {
   // Texts
 
   it(`can render text`, () => {
-    const container = render(<text value={'Hello'}/>);
-    expect(container.textValue).toEqual('Hello');
+    const container = render(<surface>Hello</surface>);
+    expect(container.children[0].textValue).toEqual('Hello');
   });
 
   it(`can update text`, () => {
-    const container = render(<text value={'Hello'}/>);
-    render(<text value={'Changed'}/>);
-    expect(container.textValue).toEqual('Changed');
+    const container = render(<surface>Hello</surface>);
+    render(<surface>Changed</surface>);
+    expect(container.children[0].textValue).toEqual('Changed');
   });
 
   // Events
