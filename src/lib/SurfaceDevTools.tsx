@@ -36,7 +36,7 @@ export class SurfaceDevTools extends React.Component<{
 
 const ToggleButton = () => (
   <surface>
-    DevTools
+    SurfaceDevTools
   </surface>
 );
 
