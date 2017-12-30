@@ -7,6 +7,7 @@ import {uniq} from 'lodash';
 import {definedOr, GettableProps, TweenableProps} from './helpers';
 import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
 import {SurfaceStore} from './SurfaceStore';
+import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 
 const yoga = require('yoga-layout');
 
@@ -14,6 +15,7 @@ export class Surface {
   private mutableChildren: Surface[] = [];
 
   protected pixiContainer: Container;
+  private dropShadowFilter: DropShadowFilter;
   private backgroundColor?: SurfaceBackground;
   private backgroundImage?: SurfaceImage;
   private border?: SurfaceBorder;
@@ -258,6 +260,14 @@ export class Surface {
       () => this.childContainer
     );
 
+    if (this.props.dropShadowColor !== undefined) {
+      this.dropShadowFilter = new DropShadowFilter();
+      this.pixiContainer.filters = [this.dropShadowFilter];
+    } else {
+      this.pixiContainer.filters = null;
+      delete this.dropShadowFilter;
+    }
+
     const needsMask = this.props.overflow === 'hidden' ||
       this.props.backgroundImage !== undefined ||
       (this.props.backgroundColor !== undefined && this.props.borderRadius !== undefined);
@@ -343,6 +353,14 @@ export class Surface {
 
     this.pixiContainer.mask = (this.props.overflow === 'hidden' ? this.mask : undefined) as any;
     this.pixiContainer.alpha = definedOr(this.tweenableProps.opacity.value, 1);
+
+    if (this.dropShadowFilter) {
+      this.dropShadowFilter.rotation = definedOr(this.tweenableProps.dropShadowRotation.value, 0);
+      this.dropShadowFilter.alpha = definedOr(this.tweenableProps.dropShadowAlpha.value, 1) * this.pixiContainer.alpha;
+      this.dropShadowFilter.blur = definedOr(this.tweenableProps.dropShadowSize.value, 0);
+      this.dropShadowFilter.color = definedOr(this.tweenableProps.dropShadowColor.value, 0);
+      this.dropShadowFilter.distance = definedOr(this.tweenableProps.dropShadowDistance.value, 0);
+    }
   }
 
   appendChild (child: Surface) {

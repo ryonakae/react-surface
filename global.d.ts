@@ -101,6 +101,12 @@ type RenderProps = SurfaceTransform & {
   borderColorRight?: IColor;
   borderColorBottom?: IColor;
   borderColorLeft?: IColor;
+
+  dropShadowDistance?: SurfaceValue,
+  dropShadowColor?: IColor,
+  dropShadowAlpha?: SurfaceValue,
+  dropShadowSize?: SurfaceValue,
+  dropShadowRotation?: SurfaceValue
 };
 
 type SurfaceTransform = {
