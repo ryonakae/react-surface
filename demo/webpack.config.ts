@@ -46,7 +46,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
       rules: [
         {
           test: /\.tsx?$/,
-          use: [
+          use: compact([
             options.hmr && 'react-hot-loader/webpack',
             {
               loader: 'ts-loader',
@@ -57,7 +57,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
                 }
               }
             }
-          ]
+          ])
         },
         {
           test: /\.css$/,
@@ -66,11 +66,11 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
             use: 'css-loader'
           })
         },
-        {test: /\.(png|jpe?g)$/, use: 'file-loader'}
+        {test: /\.(json|svg|png|jpe?g)$/, use: 'file-loader'}
       ]
     },
     plugins: compact([
-      options.index && new HtmlWebpackPlugin({filename: 'index.html', title: 'Surface Demo'}),
+      new HtmlWebpackPlugin({filename: 'index.html', title: 'Surface Demo'}),
 
       new webpack.DefinePlugin({
         'process.env': {

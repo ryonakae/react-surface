@@ -4,7 +4,6 @@ export class BuildOptions {
     public environment: string = 'development',
 
     // Optional features.
-    public index: boolean = false,
     public sourceMaps = false,
     public debug: boolean = false,
     public cache: boolean = false,
