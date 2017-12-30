@@ -6,10 +6,16 @@ import {AppContainer as HotLoaderContainer} from 'react-hot-loader';
 import {App} from './App';
 import {SurfaceRenderer} from '../../src';
 import {useStrict} from 'mobx';
-import {ToastyStore} from './state/ToastyStore';
+import {AppState} from './state/AppState';
 
+// Initialize app state
 useStrict(true);
-const store = new ToastyStore();
+const state = new AppState();
+const domNode = document.createElement('div');
+domNode.className = 'root';
+document.body.appendChild(domNode);
+const renderer = new SurfaceRenderer(domNode);
+state.surface = renderer.store;
 
 // Load global assets
 loadFonts({
@@ -35,13 +41,8 @@ class AppContainer extends React.Component {
   }
 }
 
-const domNode = document.createElement('div');
-domNode.className = 'root';
-document.body.appendChild(domNode);
-const renderer = new SurfaceRenderer(domNode);
-
 function render (AppComponent: typeof App) {
-  let composedApp = <AppComponent surfaceStore={renderer.store} toastyStore={store} />;
+  let composedApp = <AppComponent state={state} />;
   if (module.hot) {
     composedApp = (
       <AppContainer>

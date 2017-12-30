@@ -4,6 +4,7 @@ import * as Color from 'color';
 import {observer} from 'mobx-react/custom';
 import {observable, action} from 'mobx';
 import {tweenSugar} from './TweenPresets';
+import {grid} from './UISettings';
 
 @observer
 export class Button extends React.Component<{
@@ -42,9 +43,10 @@ export class Button extends React.Component<{
 const styles = {
   button (isHovered: boolean, isActive: boolean) {
     return {
-      padding: 10,
+      padding: grid.gutter,
+      flexDirection: 'row',
       opacity: tweenSugar.press.toggle(1, 0.8, isActive),
       backgroundColor: tweenSugar.focus.toggle(Color.rgb('#267835'), Color.rgb('#3ea851'), isHovered)
-    };
+    } as SurfaceStyle;
   }
 };

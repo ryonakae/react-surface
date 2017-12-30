@@ -4,13 +4,13 @@ import {Toasty, ToastyState} from '../state/Toasty';
 import {tweenSugar} from './TweenPresets';
 import {computed} from 'mobx';
 import {observer} from 'mobx-react/custom';
-import {ToastyStore} from '../state/ToastyStore';
 import {Crossfader} from '../lib/Crossfader';
+import {grid} from './UISettings';
+import {AppStateComponent} from '../AppStateComponent';
 
 @observer
-export class ToastyItem extends React.Component<{
+export class ToastyItem extends AppStateComponent<{
   index: number,
-  toastyStore: ToastyStore,
   toasty: Toasty
 }> {
   tweens = {
@@ -22,7 +22,7 @@ export class ToastyItem extends React.Component<{
 
   messageSize: Size;
 
-  @computed get displayedMessage () {
+  @computed get displayedContent () {
     if (this.props.toasty.state <= ToastyState.Exclaiming) {
       return '!';
     }
@@ -45,7 +45,7 @@ export class ToastyItem extends React.Component<{
   async componentWillExit () {
     await Promise.all([
       this.tweens.opacity.to(0),
-      this.tweens.translateX.to(-this.props.toastyStore.containerSize.width / 3)
+      this.tweens.translateX.to(-this.appState.toasties.containerSize.width / 3)
     ]);
   }
 
@@ -63,7 +63,7 @@ export class ToastyItem extends React.Component<{
       ...this.tweens,
       ...styles.toasty(
         this.props.index,
-        this.props.toastyStore,
+        this.appState.toasties.containerSize,
         this.props.toasty,
       )
     };
@@ -71,8 +71,8 @@ export class ToastyItem extends React.Component<{
     return (
       <surface {...style} onClick={this.onClick.bind(this)}>
         <Crossfader>
-          <surface key={this.displayedMessage} onSizeChanged={this.transitionWidth.bind(this)}>
-            {this.displayedMessage}
+          <surface key={this.displayedContent} onSizeChanged={this.transitionWidth.bind(this)}>
+            {this.displayedContent}
           </surface>
         </Crossfader>
       </surface>
@@ -84,15 +84,15 @@ export class ToastyItem extends React.Component<{
   }
 }
 
-const itemPadding = 10;
-const itemHeight = 50;
+const itemPadding = grid.gutter;
+const itemHeight = grid.ySpan(1);
 const itemSpacing = itemPadding;
 
 const styles = {
-  toasty (index: number, store: ToastyStore, toasty: Toasty) {
+  toasty (index: number, containerSize: Size, toasty: Toasty) {
     const yOffset = tweenSugar.slide.to(
       toasty.state <= ToastyState.Presenting ?
-        store.containerSize.height - itemHeight :
+        containerSize.height - itemHeight :
         index * (itemHeight + itemSpacing)
     );
 
@@ -121,4 +121,3 @@ function ellipsis (str: string, maxLength: number) {
   }
   return str.substr(0, maxLength) + '...';
 }
-

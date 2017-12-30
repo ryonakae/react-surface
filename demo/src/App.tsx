@@ -2,20 +2,25 @@ import * as React from 'react';
 import {fonts} from './assets/fonts';
 import * as Color from 'color';
 import {SurfaceStyleSheet} from '../../src/lib/SurfaceStyleSheet';
-import {ToastyOverlay} from './ui/ToastyOverlay';
 import {Button} from './ui/Button';
-import {ToastyStore} from './state/ToastyStore';
 import {SurfaceDevTools} from '../../src/lib/SurfaceDevTools';
-import {SurfaceStore} from '../../src/lib/SurfaceStore';
+import {StreamOverlay} from './ui/StreamOverlay';
+import {grid} from './ui/UISettings';
+import {appStateContext} from './AppStateComponent';
+import {AppState} from './state/AppState';
 
-export class App extends React.Component<{
-  toastyStore: ToastyStore,
-  surfaceStore: SurfaceStore
-}> {
+export class App extends React.Component<{state: AppState}> {
+  static childContextTypes = appStateContext;
+  getChildContext () {
+    return {
+      state: this.props.state
+    };
+  }
+
   private behaviorDisposers: Array<() => void>;
 
   componentWillMount () {
-    this.behaviorDisposers = this.props.toastyStore.initializeBehavior();
+    this.behaviorDisposers = this.props.state.initializeBehavior();
   }
 
   componentWillUnmount () {
@@ -25,11 +30,11 @@ export class App extends React.Component<{
   render () {
     return (
       <surface {...styles.app}>
-        <surface {...styles.content}>
-          <Button label="Spawn Toasty" onClick={() => this.props.toastyStore.spawnToasty(false)}/>
-        </surface>
-        <SurfaceDevTools store={this.props.surfaceStore} style={styles.devTools}/>
-        <ToastyOverlay toastyStore={this.props.toastyStore} style={styles.toastyOverlay}/>
+        <StreamOverlay/>
+        <div {...styles.devTools}>
+          <SurfaceDevTools store={this.props.state.surface} />
+          <Button label="Spawn Toasty" onClick={() => this.props.state.toasties.spawnToasty(false)}/>
+        </div>
       </surface>
     );
   }
@@ -39,8 +44,6 @@ const styles = SurfaceStyleSheet.create({
   app: {
     flexGrow: 1,
     backgroundColor: Color.rgb('#000000'),
-    flexWrap: 'wrap',
-    flexDirection: 'row',
     color: Color.rgb('#ffffff'),
     fontSize: 14,
     fontFamily: fonts.Default
@@ -48,11 +51,8 @@ const styles = SurfaceStyleSheet.create({
 
   devTools: {
     position: 'absolute',
-    bottom: 10, left: 10
-  },
-
-  content: {
-    position: 'absolute'
+    bottom: grid.gutter, left: grid.gutter,
+    flexDirection: 'row'
   },
 
   toastyOverlay: {
