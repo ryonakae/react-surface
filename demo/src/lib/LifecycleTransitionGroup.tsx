@@ -139,7 +139,7 @@ class Transition {
       if (this.instance.componentWillEnter) {
         await this.instance.componentWillEnter();
       }
-      if (this.instance.componentWillTransition) {
+      if (this.instance && this.instance.componentWillTransition) {
         await this.instance.componentWillTransition(TransitionState.Entering);
       }
       if (this.state === TransitionState.Entering) {
@@ -154,7 +154,7 @@ class Transition {
       if (this.instance.componentWillExit) {
         await this.instance.componentWillExit();
       }
-      if (this.instance.componentWillTransition) {
+      if (this.instance && this.instance.componentWillTransition) {
         await this.instance.componentWillTransition(TransitionState.Exiting);
       }
       if (this.state === TransitionState.Exiting) {
