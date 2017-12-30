@@ -1,26 +1,37 @@
 import * as React from 'react';
-import {SurfaceStyleSheet} from '../../../src/lib/SurfaceStyleSheet';
+import {grid} from './UISettings';
+import * as Color from 'color';
 
-export const RichLink = ({name, url}: any) => (
-  <surface {...styles.richLink}>
-    <surface {...styles.richLinkIcon}/>
-    <surface {...styles.richLinkName}>
-      Official {name}
-    </surface>
-    <Link url={url}>{url}</Link>
+type RichLinkProps = {
+  name: string,
+  icon: string,
+  url: string
+};
+
+export const RichLink = (props: RichLinkProps) => (
+  <surface flexDirection="row" alignItems="center">
+    <surface {...styles.richLinkIcon(props.icon)}/>
+    <Link url={props.url}>{props.name}</Link>
   </surface>
 );
 
 export const Link = ({children, url}: any) => (
-  <surface onClick={url ? () => window.open(url, '_blank') : undefined}>
+  <surface onClick={() => window.open(url, '_blank')}>
     {children}
   </surface>
 );
 
-const styles = SurfaceStyleSheet.create({
-  richLink: {
-  },
-
-  link: {
-  },
-});
+const styles = {
+  richLinkIcon (url: string) {
+    const size = grid.ySpan(0.75);
+    return {
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      backgroundColor: Color.rgb('#ffffff'),
+      backgroundImage: url,
+      marginRight: grid.gutter,
+      marginLeft: grid.gutter
+    };
+  }
+};

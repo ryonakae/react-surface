@@ -16,6 +16,8 @@ domNode.className = 'root';
 document.body.appendChild(domNode);
 const renderer = new SurfaceRenderer(domNode);
 state.surface = renderer.store;
+state.stream.setTitle('Building a stream overlay using my own renderer!');
+state.stream.setNowPlaying('“Sway (feat. Nevve)” ― Syn Cole, Nevve');
 
 // Load global assets
 loadFonts({

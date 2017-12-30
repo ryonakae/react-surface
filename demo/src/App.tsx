@@ -51,7 +51,7 @@ const styles = SurfaceStyleSheet.create({
 
   devTools: {
     position: 'absolute',
-    bottom: grid.gutter, left: grid.gutter,
+    top: grid.gutter, left: grid.gutter,
     flexDirection: 'row'
   },
 

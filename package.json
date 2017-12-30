@@ -22,7 +22,8 @@
     "tween.js": "16.6.0",
     "webfontloader": "1.6.28",
     "yoga-layout": "1.8.0",
-    "bezier-easing": "2.0.3"
+    "bezier-easing": "2.0.3",
+    "moment": "2.20.1"
   },
   "devDependencies": {
     "@types/color": "2.0.0",
@@ -37,6 +38,7 @@
     "@types/webpack": "3.8.1",
     "@types/webpack-env": "1.13.3",
     "@types/tween.js": "16.9.0",
+    "@types/moment": "2.13.0",
     "autodll-webpack-plugin": "0.3.8",
     "css-loader": "0.28.7",
     "extract-text-webpack-plugin": "3.0.2",
@@ -61,7 +63,7 @@
       "lint",
       "test"
     ],
-    "build": "webpack --config ./demo/webpack.config.ts --env.outputFolder ../dist",
+    "build": "webpack --config ./demo/webpack.config.ts --env.outputFolder ../dist --env.module commonjs",
     "dev-server": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.stats --env.debug --env.hmr --env.sourceMaps",
     "dev-server-fast": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.vendor --env.cache --env.hmr",
     "test": "jest",
