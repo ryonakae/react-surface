@@ -237,7 +237,7 @@ export class Surface {
       () => this.backgroundColor,
       (value) => this.backgroundColor = value,
       () => new SurfaceBackground(),
-      () => this.childContainer
+      () => this.backgroundImage || this.border || this.childContainer
     );
 
     mount(
@@ -246,7 +246,7 @@ export class Surface {
       () => this.backgroundImage,
       (value) => this.backgroundImage = value,
       () => new SurfaceImage(),
-      () => this.childContainer
+      () => this.border || this.childContainer
     );
 
     mount(
