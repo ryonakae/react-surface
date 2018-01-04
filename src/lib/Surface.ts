@@ -1,4 +1,5 @@
-import {Application, Container, Text, TextMetrics, TextStyle, DisplayObject, interaction} from 'pixi.js';
+import {Application, Container, Graphics, Text, Sprite,
+  TextMetrics, TextStyle, DisplayObject, interaction} from 'pixi.js';
 import {diffEventProps, pixiEvents, surfaceEvents} from './events';
 import {getYogaValueTransformer} from './YogaHelpers';
 import {Tween} from './tween/Tween';
@@ -8,13 +9,17 @@ import {definedOr, GettableProps, TweenableProps} from './helpers';
 import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
 import {SurfaceStore} from './SurfaceStore';
 import {DropShadowFilter} from '@pixi/filter-drop-shadow';
+import {commonColors} from './constants';
 
 const yoga = require('yoga-layout');
 
 export class Surface {
   private mutableChildren: Surface[] = [];
+  private surfaceMaskBoundsHash: string;
+  private inverseMask: Graphics | Sprite;
+  private surfaceMaskId: SurfaceMaskId;
 
-  protected pixiContainer: Container;
+  public pixiContainer: Container;
   private dropShadowFilter: DropShadowFilter;
   private backgroundColor?: SurfaceBackground;
   private backgroundImage?: SurfaceImage;
@@ -106,8 +111,14 @@ export class Surface {
     });
   }
 
-  measureText () {
-    const measurement = TextMetrics.measureText(this.pixiText!.text, new TextStyle(this.cascadedTextStyle));
+  measureText (width: number) {
+    const measurement = TextMetrics.measureText(
+      this.pixiText!.text, new TextStyle({
+        ...this.cascadedTextStyle,
+        wordWrapWidth: width
+      })
+    );
+
     return {
       width: measurement.maxLineWidth,
       height: measurement.lines.length * measurement.lineHeight
@@ -295,7 +306,10 @@ export class Surface {
 
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
-    if (!this.layout || layout.width !== this.layout.width || layout.height !== this.layout.height) {
+    const didLayoutSizeChange = !this.layout || layout.width !== this.layout.width ||
+      layout.height !== this.layout.height;
+
+    if (didLayoutSizeChange) {
       this.emitEvent('onSizeChanged', layout);
     }
 
@@ -320,7 +334,10 @@ export class Surface {
     );
 
     if (this.pixiText) {
-      Object.assign(this.pixiText.style, this.cascadedTextStyle);
+      Object.assign(this.pixiText.style, this.cascadedTextStyle, {wordWrapWidth: layout.width});
+      if (didLayoutSizeChange) { // TODO check if
+        this.yogaNode.markDirty();
+      }
     }
 
     if (this.backgroundColor) {
@@ -343,23 +360,60 @@ export class Surface {
       }
     }
 
-    if (this.mask) {
-      this.mask.update(layout, this.tweenableProps);
-    }
-
     if (this.border) {
       this.border.update(layout, this.tweenableProps);
     }
 
-    this.pixiContainer.mask = (this.props.overflow === 'hidden' ? this.mask : undefined) as any;
+    this.updateMasks(layout);
+
     this.pixiContainer.alpha = definedOr(this.tweenableProps.opacity.value, 1);
 
     if (this.dropShadowFilter) {
       this.dropShadowFilter.rotation = definedOr(this.tweenableProps.dropShadowRotation.value, 0);
       this.dropShadowFilter.alpha = definedOr(this.tweenableProps.dropShadowAlpha.value, 1) * this.pixiContainer.alpha;
       this.dropShadowFilter.blur = definedOr(this.tweenableProps.dropShadowSize.value, 0);
-      this.dropShadowFilter.color = definedOr(this.tweenableProps.dropShadowColor.value, 0);
+      this.dropShadowFilter.color = definedOr(this.tweenableProps.dropShadowColor.value, commonColors.transparent).rgbNumber();
       this.dropShadowFilter.distance = definedOr(this.tweenableProps.dropShadowDistance.value, 0);
+    }
+  }
+
+  updateMasks (layout: Size) {
+    if (this.mask) {
+      this.mask.update(layout, this.tweenableProps);
+    }
+
+    const surfaceMask = this.root.surfaceMasks.get(this.props.maskedBy!);
+
+    if (surfaceMask) {
+      const targetBounds = this.pixiContainer.getBounds();
+      const maskBounds = surfaceMask.pixiContainer.getBounds();
+      const surfaceMaskBoundsHash = JSON.stringify([targetBounds, maskBounds]);
+
+      const didBoundsChange = surfaceMaskBoundsHash !== this.surfaceMaskBoundsHash;
+      this.surfaceMaskBoundsHash = surfaceMaskBoundsHash;
+      if (!this.inverseMask || didBoundsChange) {
+        if (this.inverseMask) {
+          this.pixiContainer.removeChild(this.inverseMask);
+          delete this.inverseMask;
+        }
+        this.inverseMask = generateInverseBoxMask(targetBounds, maskBounds);
+        this.pixiContainer.addChild(this.inverseMask);
+        this.pixiContainer.mask = this.inverseMask;
+      }
+    } else {
+      if (this.inverseMask) {
+        this.pixiContainer.removeChild(this.inverseMask);
+        delete this.inverseMask;
+      }
+      this.pixiContainer.mask = (this.props.overflow === 'hidden' ? this.mask : undefined) as any;
+    }
+
+    if (this.props.mask !== undefined) {
+      this.root.surfaceMasks.delete(this.surfaceMaskId);
+      this.root.surfaceMasks.set(this.surfaceMaskId = this.props.mask, this);
+    } else if (this.surfaceMaskId) {
+      this.root.surfaceMasks.delete(this.surfaceMaskId);
+      delete this.surfaceMaskId;
     }
   }
 
@@ -427,7 +481,8 @@ export class Surface {
 }
 
 export class SurfaceRoot extends Surface {
-  private app: Application;
+  public app: Application;
+  public surfaceMasks: Map<SurfaceMaskId, Surface>;
   private target: HTMLElement;
   private store: SurfaceStore;
 
@@ -446,6 +501,7 @@ export class SurfaceRoot extends Surface {
     this.root = this;
     this.store = store;
     this.surfacesWithTweens = new Map<number, Surface>();
+    this.surfaceMasks = new Map<SurfaceMaskId, Surface>();
     this.target = target;
     this.app = app;
 
@@ -529,4 +585,22 @@ function mount <T extends DisplayObject> (
       setter(undefined);
     }
   }
+}
+
+function generateInverseBoxMask (target: Bounds, mask: Bounds) {
+  const inverse = new Graphics();
+
+  const top = mask.top - target.top;
+  const left = mask.left - target.left;
+  const right = target.right - mask.right;
+  const bottom = target.bottom - mask.bottom;
+
+  const c = commonColors.opaque;
+  SurfaceBorder.prototype.drawSquare.call(
+    inverse, target,
+    [top, right, bottom, left],
+    [c, c, c, c]
+  );
+  
+  return new Sprite(inverse.generateCanvasTexture());
 }

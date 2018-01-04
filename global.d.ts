@@ -13,6 +13,7 @@ type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage 
 type SurfaceChild = React.ReactElement<SurfaceProps> | React.ReactNode;
 type SurfaceStyle = YogaProps & RenderProps;
 type SurfaceStyleDict = {[key: string]: SurfaceStyle};
+type SurfaceMaskId = number | string;
 
 // TODO use 'color' package
 type IColor = SurfaceTweenInstruction | {
@@ -31,6 +32,13 @@ type Point = {
 type Size = {
   width: number,
   height: number
+};
+
+type Bounds = {
+  top: number,
+  right: number,
+  bottom: number,
+  left: number
 };
 
 type YogaProps = {
@@ -106,7 +114,10 @@ type RenderProps = SurfaceTransform & {
   dropShadowColor?: IColor,
   dropShadowAlpha?: SurfaceValue,
   dropShadowSize?: SurfaceValue,
-  dropShadowRotation?: SurfaceValue
+  dropShadowRotation?: SurfaceValue,
+
+  mask?: SurfaceMaskId,
+  maskedBy?: SurfaceMaskId
 };
 
 type SurfaceTransform = {
