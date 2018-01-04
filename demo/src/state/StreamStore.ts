@@ -1,42 +1,34 @@
-import {observable, action} from 'mobx';
+import {observable, action, computed} from 'mobx';
+import {currentTime} from './_static';
 
 export class StreamStore {
+  @observable isOnline: boolean = false;
+  @observable createdAt: Date = new Date();
+  @observable viewerCount: number = 0;
+  @observable game: string;
   @observable title = '';
-  @observable nowPlaying = '';
-  @observable viewerCount: number = 50;
-  @observable uptime: number = 0;
+  @observable totalViews: number = 0;
+  @observable totalFollowers: number = 0;
 
-  @action
-  setTitle (newTitle: string) {
-    this.title = newTitle;
+  @computed get uptime () {
+    return currentTime.get().getTime() - this.createdAt.getTime();
   }
 
   @action
-  setNowPlaying (nowPlaying: string) {
-    this.nowPlaying = nowPlaying;
+  setIsOnline (online: boolean) {
+    this.isOnline = online;
   }
 
   @action
-  setViewerCount (viewerCount: number) {
+  update (
+    createdAt: Date, viewerCount: number, game: string,
+    title: string, totalViews: number, totalFollowers: number
+  ) {
+    this.createdAt = createdAt;
     this.viewerCount = viewerCount;
-  }
-
-  @action
-  setUptime (uptime: number) {
-    this.uptime = uptime;
-  }
-
-  initializeBehavior () {
-    // HACK temporary development code
-    // TODO remove
-    const startTime = new Date();
-    const timeIntervalId = setInterval(
-      () => this.setUptime(new Date().getTime() - startTime.getTime()),
-      1000
-    );
-
-    return [
-      () => clearInterval(timeIntervalId)
-    ];
+    this.game = game;
+    this.title = title;
+    this.totalViews = totalViews;
+    this.totalFollowers = totalFollowers;
   }
 }

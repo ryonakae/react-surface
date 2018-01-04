@@ -1,17 +1,7 @@
 import {Toasty, ToastyState} from './Toasty';
 import {observable, computed, action, reaction} from 'mobx';
 
-export const mockedMessages = [
-  'You are looking mighty fine today, good sir!',
-  'The pen is mightier than the sword if the sword is very short, and the pen is very sharp.',
-  'In ancient times cats were worshipped as gods. They have not forgotten this.',
-  '+++Divide By Cucumber Error. Please Reinstall Universe And Reboot +++',
-  'The key to a continued heartbeat is to MOVE YOUR FEET.',
-  'I give my life, on the steps... To heaven!',
-  'My brethren fell to deaths cold embrace, Yet i stand alone against the countless horde!'
-];
-
-const logSize = 3;
+export const maxToastyLogSize = 3;
 const presentationCooldownTime = 3500;
 const toastyTimes: {[key: string]: number} = {
   [ToastyState.Exclaiming]: 1000,
@@ -57,12 +47,7 @@ export class ToastyStore {
   }
 
   @action
-  spawnToasty (queue: boolean = true) {
-    const toasty = new Toasty();
-    toasty.message = randomizeItem(mockedMessages);
-    if (!queue) {
-      toasty.state = ToastyState.Presenting;
-    }
+  addToasty (toasty: Toasty) {
     this.toasties.push(toasty);
   }
 
@@ -116,7 +101,7 @@ export class ToastyStore {
       reaction(
         () => this.loggedToasties,
         (logged) => {
-          const expired = logged.length - logSize;
+          const expired = logged.length - maxToastyLogSize;
           if (expired > 0) {
             logged
               .slice(0, expired)
@@ -127,23 +112,7 @@ export class ToastyStore {
           }
         },
         true
-      ),
-
-      // Queue new toasties automatically
-      reaction(
-        () => ({toasty: this.currentPresentation, allowed: this.canStartNewPresentation}),
-        (payload) => {
-          if (!payload.toasty && payload.allowed) {
-            this.spawnToasty();
-          }
-        },
-        true
       )
     ];
   }
-}
-
-function randomizeItem<T> (items: T[]) {
-  const randomIndex = Math.floor(Math.random() * (items.length) - 0.01);
-  return items[randomIndex];
 }

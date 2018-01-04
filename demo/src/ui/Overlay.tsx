@@ -1,20 +1,23 @@
 import * as React from 'react';
-import * as Color from 'color';
 import {SurfaceStyleSheet} from '../../../src/lib/SurfaceStyleSheet';
-import {commonStyles, grid} from './UISettings';
-import {ToastyOverlay} from './ToastyOverlay';
-import {RichLink} from './Link';
-import {AppStateComponent} from '../AppStateComponent';
+import {commonColors, commonStyles, grid} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {computed} from 'mobx';
-import * as moment from 'moment';
+import {duration} from 'moment';
+import * as Color from 'color';
+import {ToastyList} from './ToastyList';
+import {RichLink} from './Link';
+import {AppStateComponent} from '../AppStateComponent';
+import {Chatbox} from './Chatbox';
+import {maxToastyLogSize} from '../state/ToastyStore';
+import {toastyHeight, toastySpacing} from './ToastyItem';
 
 @observer
-export class StreamOverlay extends AppStateComponent {
+export class Overlay extends AppStateComponent {
   @computed get uptimeString () {
-    const duration = moment.duration(this.appState.stream.uptime);
+    const d = duration(this.appState.stream.uptime);
 
-    return [duration.hours(), duration.minutes(), duration.seconds()]
+    return [d.hours(), d.minutes(), d.seconds()]
       .map((value) => value.toString().padStart(2, '0'))
       .join(':');
   }
@@ -22,32 +25,30 @@ export class StreamOverlay extends AppStateComponent {
   render () {
     return (
       <surface {...styles.streamOverlay}>
+        <surface maskedBy={1} {...styles.background}/>
+
         <surface {...styles.header}>
-          <surface {...styles.logo}/>
-          <surface flexGrow={1}>
-            <surface {...styles.title}>{this.appState.stream.title}</surface>
-            <surface {...styles.nowPlaying}>
-              Now playing: {this.appState.stream.nowPlaying}
-            </surface>
+          <surface {...styles.title}>
+            {this.appState.stream.title}
           </surface>
           <surface {...styles.stats}>
             <surface {...styles.statsItem}>
-              {this.appState.stream.viewerCount} Viewers
+              {this.appState.stream.viewerCount} viewers
             </surface>
             <surface {...styles.statsItem}>
-              Uptime: {this.uptimeString}
+              {this.uptimeString} uptime
             </surface>
           </surface>
         </surface>
+
         <surface flexGrow={1} flexDirection="row">
-          <surface {...styles.window}>
-            Screen
-          </surface>
+          <surface mask={1} {...styles.window}/>
           <surface {...styles.widgets}>
-            <ToastyOverlay style={{flexGrow: 1}}/>
-            <Chatbox/>
+            <ToastyList style={styles.toasties}/>
+            <Chatbox style={styles.chatbox} messages={this.appState.chatbox.messages}/>
           </surface>
         </surface>
+
         <surface {...styles.footer}>
           <RichLink
             icon={require('../assets/codenjoy-icon.jpg')}
@@ -70,20 +71,23 @@ export class StreamOverlay extends AppStateComponent {
   }
 }
 
-const Chatbox = () => (
-  <surface {...styles.chatbox}>
-    Chatbox
-  </surface>
-);
-
 const commonPadding = grid.gutter * 3;
+const rightBounds = {
+  width: grid.xSpan(2.5),
+  marginLeft: commonPadding,
+};
+
 const styles = SurfaceStyleSheet.create({
-  streamOverlay: {
-    flexGrow: 1,
-    backgroundColor: Color.rgb('#152951'),
+  background: {
+    ...commonStyles.dock,
+    backgroundColor: commonColors.darkBlue,
     backgroundImage: require('../assets/bg.jpg'),
     backgroundSize: 'cover',
-    backgroundOpacity: 0.5,
+    backgroundOpacity: 0.2,
+  },
+
+  streamOverlay: {
+    flexGrow: 1,
     paddingTop: grid.paddingTop,
     paddingRight: grid.paddingRight,
     paddingBottom: grid.paddingBottom,
@@ -92,57 +96,60 @@ const styles = SurfaceStyleSheet.create({
 
   header: {
     flexDirection: 'row',
-    backgroundColor: Color.rgb('#2645bf'),
-    marginBottom: grid.gutter
+    marginBottom: grid.gutter,
   },
 
-  logo: {
-    position: 'absolute',
-    top: 0, right: 0,
-    backgroundImage: require('../assets/logo.png'),
-    backgroundPosition: ['100%', 0],
-    width: grid.xSpan(2),
-    height: grid.ySpan(1)
+  title: {
+    flexGrow: 1,
+    fontSize: 16,
+    justifyContent: 'flex-end',
+    overflow: 'hidden'
   },
 
-  title: commonStyles.blueLine,
   nowPlaying: {
-    ...commonStyles.blueLine,
-    marginTop: grid.gutter
+    alignItems: 'flex-end',
   },
 
   stats: {
-    alignSelf: 'flex-end',
-    flexDirection: 'row'
+    ...rightBounds,
+    flexDirection: 'row',
+    justifyContent: 'flex-end'
   },
 
   statsItem: {
     flexDirection: 'row',
     marginLeft: grid.gutter,
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    minWidth: grid.xSpan(1)
   },
 
   window: {
-    ...commonStyles.centeredContent,
     flexGrow: 1,
-    backgroundColor: Color.rgb('#2645bf')
+    border: grid.gutter / 2,
+    borderColor: commonColors.darkGray,
+    dropShadowColor: commonColors.black,
+    dropShadowSize: grid.gutter / 2,
+    backgroundColor: commonColors.lightBlue.alpha(0)
   },
 
   widgets: {
-    width: grid.xSpan(2),
-    marginLeft: commonPadding,
-    backgroundColor: Color.rgb('#2645bf')
+    ...rightBounds
+  },
+
+  toasties: {
+    flexGrow: 1,
+    backgroundColor: Color.rgb('#3ba173'),
   },
 
   chatbox: {
-    flexGrow: 1,
-    backgroundColor: Color.rgb('#123123')
+    height: grid.ySpan(16) - (maxToastyLogSize * toastyHeight + (maxToastyLogSize - 1) * toastySpacing)
   },
 
   footer: {
     height: grid.ySpan(1),
     marginTop: commonPadding,
-    backgroundColor: Color.rgb('#2645bf'),
-    flexDirection: 'row'
+    flexDirection: 'row',
+    justifyContent: 'space-around'
   }
 });

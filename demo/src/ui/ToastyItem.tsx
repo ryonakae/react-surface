@@ -1,11 +1,9 @@
 import * as React from 'react';
-import * as Color from 'color';
 import {Toasty, ToastyState} from '../state/Toasty';
-import {tweenSugar} from './TweenPresets';
-import {computed} from 'mobx';
+import {tweenSugar} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {Crossfader} from '../lib/Crossfader';
-import {grid} from './UISettings';
+import {commonColors, grid} from './UISettings';
 import {AppStateComponent} from '../AppStateComponent';
 
 @observer
@@ -20,37 +18,22 @@ export class ToastyItem extends AppStateComponent<{
     width: tweenSugar.slide.tween(0)
   };
 
-  messageSize: Size;
-
-  @computed get displayedContent () {
-    if (this.props.toasty.state <= ToastyState.Exclaiming) {
-      return '!';
-    }
-    if (this.props.toasty.state <= ToastyState.Presenting) {
-      return this.props.toasty.message;
-    }
-    if (this.props.toasty.state <= ToastyState.Logging) {
-      return ellipsis(this.props.toasty.message, 20);
-    }
-    return '...';
-  }
-
   async componentWillEnter () {
     await Promise.all([
       this.tweens.opacity.to(1),
-      this.tweens.translateY.transition(itemHeight, 0)
+      this.tweens.translateY.transition(toastyHeight, 0)
     ]);
   }
 
   async componentWillExit () {
     await Promise.all([
       this.tweens.opacity.to(0),
-      this.tweens.translateX.to(-this.appState.toasties.containerSize.width / 3)
+      this.tweens.translateX.to(-grid.xSpan(3))
     ]);
   }
 
   async transitionWidth (messageSize: Size) {
-    const targetWidth = messageSize.width + itemPadding * 2;
+    const targetWidth = messageSize.width + toastyPadding * 2;
     if (this.tweens.width.value === 0) {
       this.tweens.width.set(targetWidth);
     } else {
@@ -64,15 +47,15 @@ export class ToastyItem extends AppStateComponent<{
       ...styles.toasty(
         this.props.index,
         this.appState.toasties.containerSize,
-        this.props.toasty,
+        this.props.toasty
       )
     };
 
     return (
       <surface {...style} onClick={this.onClick.bind(this)}>
         <Crossfader>
-          <surface key={this.displayedContent} onSizeChanged={this.transitionWidth.bind(this)}>
-            {this.displayedContent}
+          <surface key={this.props.toasty.message} onSizeChanged={this.transitionWidth.bind(this)}>
+            {this.props.toasty.message}
           </surface>
         </Crossfader>
       </surface>
@@ -84,40 +67,30 @@ export class ToastyItem extends AppStateComponent<{
   }
 }
 
-const itemPadding = grid.gutter;
-const itemHeight = grid.ySpan(1);
-const itemSpacing = itemPadding;
+export const toastyPadding = grid.gutter;
+export const toastyHeight = grid.ySpan(1);
+export const toastySpacing = toastyPadding;
 
 const styles = {
   toasty (index: number, containerSize: Size, toasty: Toasty) {
     const yOffset = tweenSugar.slide.to(
       toasty.state <= ToastyState.Presenting ?
-        containerSize.height - itemHeight :
-        index * (itemHeight + itemSpacing)
+        containerSize.height - toastyHeight :
+        index * (toastyHeight + toastySpacing)
     );
 
     return {
       position: 'absolute',
       right: 0,
       top: yOffset,
-      padding: itemPadding,
-      height: itemHeight,
-      borderRadius: itemPadding,
+      padding: toastyPadding,
+      height: toastyHeight,
+      borderRadius: toastyPadding,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: Color.rgb('#1767ea'),
+      textAlign: 'center',
+      backgroundColor: commonColors.darkBlue,
       overflow: 'hidden'
     } as SurfaceStyle;
   }
 };
-
-function ellipsis (str: string, maxLength: number) {
-  if (!str) {
-    return '...';
-  }
-
-  if (str.length <= maxLength) {
-    return str;
-  }
-  return str.substr(0, maxLength) + '...';
-}

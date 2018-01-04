@@ -3,7 +3,7 @@ import {interaction} from 'pixi.js';
 import * as Color from 'color';
 import {observer} from 'mobx-react/custom';
 import {observable, action} from 'mobx';
-import {tweenSugar} from './TweenPresets';
+import {tweenSugar} from './UISettings';
 import {grid} from './UISettings';
 
 @observer

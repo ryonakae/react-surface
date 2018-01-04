@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {grid} from './UISettings';
-import * as Color from 'color';
+import {commonColors, grid} from './UISettings';
 
 type RichLinkProps = {
   name: string,
@@ -16,7 +15,7 @@ export const RichLink = (props: RichLinkProps) => (
 );
 
 export const Link = ({children, url}: any) => (
-  <surface onClick={() => window.open(url, '_blank')}>
+  <surface flexDirection="row" wordWrap flexWrap="wrap" onClick={() => window.open(url, '_blank')}>
     {children}
   </surface>
 );
@@ -28,7 +27,7 @@ const styles = {
       width: size,
       height: size,
       borderRadius: size / 2,
-      backgroundColor: Color.rgb('#ffffff'),
+      backgroundColor: commonColors.white,
       backgroundImage: url,
       marginRight: grid.gutter,
       marginLeft: grid.gutter
