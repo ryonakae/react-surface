@@ -20,13 +20,16 @@ export class ChatStore {
   }
 }
 
+export type ChatMessageEmotes = {[key: string]: string};
+
 export class ChatMessage {
   id: number = messageIdCounter += 1;
   createdAt: Date = new Date();
 
   constructor (
     public username: string,
-    public text: string
+    public text: string,
+    public emotes: ChatMessageEmotes = {}
   ) {}
 
   static compare (a: ChatMessage, b: ChatMessage) {

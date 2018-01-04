@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {StreamStore} from './StreamStore';
-import {ChatMessage, ChatStore} from './ChatStore';
+import {ChatMessage, ChatMessageEmotes, ChatStore} from './ChatStore';
 import {ToastyStore} from './ToastyStore';
 import {HostToasty, ResubToasty, SubToasty} from './Toasty';
 
@@ -57,8 +57,8 @@ export class TwitchClient {
 
     // TMI binding
     this.messageClient.connect();
-    this.messageClient.on('chat', (...args: any[]) =>
-      chatbox.addMessage(new ChatMessage(args[1]['display-name'], args[2]))
+    this.messageClient.on('chat', (channel: string, userState: any, message: string, self: boolean) =>
+      chatbox.addMessage(parseChatMessage(channel, userState, message, self))
     );
     this.messageClient.on('subscription', (...args: any[]) =>
       toasties.addToasty(new SubToasty(args[1], args[2], args[3]))
@@ -103,4 +103,17 @@ class KrakenClient {
 
     return response.data;
   }
+}
+
+function parseChatMessage (channel: string, userState: any, message: string, self: boolean) {
+  const emoteUrlsByName: ChatMessageEmotes = {};
+  for (const emoteId in userState.emotes) {
+    const positions = userState.emotes[emoteId];
+    const indexes = positions[0].split('-').map((indexString: string) => parseInt(indexString, 10));
+    const emoteName = message.substring(indexes[0], indexes[1] + 1);
+    const emoteUrl = `http://static-cdn.jtvnw.net/emoticons/v1/${emoteId}/1.0`;
+    emoteUrlsByName[emoteName] = emoteUrl;
+  }
+
+  return new ChatMessage(userState['display-name'], message, emoteUrlsByName);
 }

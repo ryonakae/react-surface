@@ -2,7 +2,8 @@ import * as React from 'react';
 import {commonColors, grid} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {computed} from 'mobx';
-import {ChatMessage} from '../state/ChatStore';
+import {ChatMessage, ChatMessageEmotes} from '../state/ChatStore';
+import {Link} from './Link';
 
 @observer
 export class Chatbox extends React.Component<{
@@ -15,6 +16,13 @@ export class Chatbox extends React.Component<{
     return sorted.slice(sorted.length > max ? sorted.length - max : 0);
   }
 
+  @computed get availableEmotes () {
+    return this.visibleMessages.reduce(
+      (emotes: ChatMessageEmotes, message) => Object.assign(emotes, message.emotes),
+      {}
+    );
+  }
+
   render () {
     const style = {
       ...styles.chatbox,
@@ -24,20 +32,29 @@ export class Chatbox extends React.Component<{
     return (
       <surface {...style}>
         {this.visibleMessages.map((msg) => (
-          <ChatboxMessage key={msg.id} message={msg}/>
+          <surface {...styles.message}>
+            {msg.username}: {formatChatboxMessage(msg.text, this.availableEmotes)}
+          </surface>
         ))}
       </surface>
     );
   }
 }
 
-const ChatboxMessage = ({message}: {message: ChatMessage}) => {
-  return (
-    <surface {...styles.message}>
-      {message.username + ': ' + message.text}
-    </surface>
-  );
-};
+function formatChatboxMessage (text: string, availableEmotes: {[key: string]: string}) {
+  const words = text.split(/\s+/);
+  const formatted = words.map((word, i) => {
+    const res = /@(\w+)/.exec(word);
+    if (res) {
+      return <Link key={i} url={`https://twitch.tv/${res[1]}`}>{word} </Link>;
+    }
+    if (availableEmotes.hasOwnProperty(word)) {
+      return <surface {...styles.emote} backgroundImage={availableEmotes[word]}/>;
+    }
+    return word + ' ';
+  });
+  return formatted;
+}
 
 const styles = {
   chatbox: {
@@ -56,5 +73,11 @@ const styles = {
     wordWrap: true,
     flexWrap: 'wrap',
     marginTop: grid.gutter / 2
-  } as SurfaceStyle
+  } as SurfaceStyle,
+
+  emote: {
+    width: 25,
+    height: 28,
+    marginRight: 5
+  }
 };
