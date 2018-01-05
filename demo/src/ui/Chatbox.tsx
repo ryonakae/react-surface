@@ -16,13 +16,6 @@ export class Chatbox extends React.Component<{
     return sorted.slice(sorted.length > max ? sorted.length - max : 0);
   }
 
-  @computed get availableEmotes () {
-    return this.visibleMessages.reduce(
-      (emotes: ChatMessageEmotes, message) => Object.assign(emotes, message.emotes),
-      {}
-    );
-  }
-
   render () {
     const style = {
       ...styles.chatbox,
@@ -33,7 +26,7 @@ export class Chatbox extends React.Component<{
       <surface {...style}>
         {this.visibleMessages.map((msg) => (
           <surface {...styles.message}>
-            {msg.username}: {formatChatboxMessage(msg.text, this.availableEmotes)}
+            {msg.username}: {formatChatboxMessage(msg.text, msg.emotes)}
           </surface>
         ))}
       </surface>
