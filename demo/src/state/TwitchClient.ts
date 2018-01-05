@@ -47,28 +47,35 @@ export class TwitchClient {
     }
   }
 
-  initialize (store: StreamStore, chatbox: ChatStore, toasties: ToastyStore) {
+  private async loadBadges (chatbox: ChatStore) {
+    const response = await axios.get('https://badges.twitch.tv/v1/badges/global/display?language=en');
+    chatbox.updateBadges(response.data.badge_sets);
+  }
+
+  initialize (streamStore: StreamStore, chatStore: ChatStore, toastyStore: ToastyStore) {
     // Kraken binding
-    this.fetchStream(store);
+    this.fetchStream(streamStore);
     const streamPollIntervalId = setInterval(
-      () => this.fetchStream(store),
+      () => this.fetchStream(streamStore),
       this.streamPollInterval
     );
 
     // TMI binding
     this.messageClient.connect();
     this.messageClient.on('chat', (channel: string, userState: any, message: string, self: boolean) =>
-      chatbox.addMessage(parseChatMessage(channel, userState, message, self))
+      chatStore.addMessage(parseChatMessage(channel, userState, message, self))
     );
     this.messageClient.on('subscription', (...args: any[]) =>
-      toasties.addToasty(new SubToasty(args[1], args[2], args[3]))
+      toastyStore.addToasty(new SubToasty(args[1], args[2], args[3]))
     );
     this.messageClient.on('resub', (...args: any[]) =>
-      toasties.addToasty(new ResubToasty(args[1], args[5], args[3], args[2]))
+      toastyStore.addToasty(new ResubToasty(args[1], args[5], args[3], args[2]))
     );
     this.messageClient.on('hosted', (...args: any[]) =>
-      toasties.addToasty(new HostToasty(args[1], args[2], args[3]))
+      toastyStore.addToasty(new HostToasty(args[1], args[2], args[3]))
     );
+
+    this.loadBadges(chatStore);
 
     return () => {
       clearInterval(streamPollIntervalId);
@@ -115,5 +122,5 @@ function parseChatMessage (channel: string, userState: any, message: string, sel
     emoteUrlsByName[emoteName] = emoteUrl;
   }
 
-  return new ChatMessage(userState['display-name'], message, emoteUrlsByName);
+  return new ChatMessage(userState['display-name'], message, emoteUrlsByName, userState.badges);
 }

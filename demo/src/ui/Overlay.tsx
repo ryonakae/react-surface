@@ -9,8 +9,6 @@ import {ToastyList} from './ToastyList';
 import {RichLink} from './Link';
 import {AppStateComponent} from '../AppStateComponent';
 import {Chatbox} from './Chatbox';
-import {maxToastyLogSize} from '../state/ToastyStore';
-import {toastyHeight, toastySpacing} from './ToastyItem';
 
 @observer
 export class Overlay extends AppStateComponent {
@@ -45,7 +43,7 @@ export class Overlay extends AppStateComponent {
           <surface mask={1} {...styles.window}/>
           <surface {...styles.widgets}>
             <ToastyList style={styles.toasties}/>
-            <Chatbox style={styles.chatbox} messages={this.appState.chatbox.messages}/>
+            <Chatbox style={styles.chatbox} chatStore={this.appState.chatbox}/>
           </surface>
         </surface>
 
@@ -143,7 +141,7 @@ const styles = SurfaceStyleSheet.create({
   },
 
   chatbox: {
-    height: grid.ySpan(16) - (maxToastyLogSize * toastyHeight + (maxToastyLogSize - 1) * toastySpacing)
+    height: grid.ySpan(8)
   },
 
   footer: {
