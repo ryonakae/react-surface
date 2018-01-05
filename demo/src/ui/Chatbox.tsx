@@ -57,9 +57,12 @@ class ChatboxMessage extends React.Component<{
 function formatChatboxMessage (text: string, emotes: {[key: string]: string}) {
   const words = text.split(/\s+/);
   const formatted = words.map((word, i) => {
-    const res = /@(\w+)/.exec(word);
-    if (res) {
-      return <Link key={i} url={`https://twitch.tv/${res[1]}`}>{word} </Link>;
+    if (/(https?:\/\/\S+)/.test(word)) {
+      return <Link key={i} url={word}>{word} </Link>;
+    }
+    const mention = /@(\w+)/.exec(word);
+    if (mention) {
+      return <Link key={i} url={`https://twitch.tv/${mention[1]}`}>{word} </Link>;
     }
     if (emotes.hasOwnProperty(word)) {
       return <Emote key={`emote_${word}_${i}`} url={emotes[word]}/>;
