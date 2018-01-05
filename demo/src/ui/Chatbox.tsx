@@ -5,16 +5,32 @@ import {computed} from 'mobx';
 import {ChatMessage, ChatStore} from '../state/ChatStore';
 import {Link} from './Link';
 import * as Color from 'color';
+import {RainbowText} from './RainbowText';
 
 @observer
 export class Chatbox extends React.Component<{
   chatStore: ChatStore,
   style: SurfaceStyle
 }> {
-  @computed get visibleMessages () {
-    const max = 35;
+  @computed get entries () {
+    const max = 25;
     const sorted = this.props.chatStore.messages.slice().sort(ChatMessage.compare);
-    return sorted.slice(sorted.length > max ? sorted.length - max : 0);
+    const slice = sorted.slice(sorted.length > max ? sorted.length - max : 0);
+
+    // Make the last thing each subscriber wrote into a rainbow
+    const entries = slice.map((message) => ({message, rainbow: false}));
+    entries.reverse();
+    const memory: {[key: string]: boolean} = {};
+    for (const entry of entries) {
+      const msg = entry.message;
+      if (!memory[msg.username] && msg.badges && msg.badges.hasOwnProperty('subscriber')) {
+        memory[msg.username] = true;
+        entry.rainbow = true;
+      }
+    }
+    entries.reverse();
+
+    return entries;
   }
 
   render () {
@@ -25,8 +41,13 @@ export class Chatbox extends React.Component<{
 
     return (
       <surface {...style}>
-        {this.visibleMessages.map((message) =>
-          <ChatboxMessage key={message.id} store={this.props.chatStore} message={message} />
+        {this.entries.map((entry) =>
+          <ChatboxMessage
+            key={entry.message.id}
+            store={this.props.chatStore}
+            message={entry.message}
+            rainbow={entry.rainbow}
+          />
         )}
       </surface>
     );
@@ -35,7 +56,8 @@ export class Chatbox extends React.Component<{
 
 class ChatboxMessage extends React.Component<{
   store: ChatStore,
-  message: ChatMessage
+  message: ChatMessage,
+  rainbow: boolean
 }> {
   renderBadges (): any[] {
     const urls = Object.values(this.props.store.getBadgeUrls(this.props.message.badges));
@@ -47,7 +69,7 @@ class ChatboxMessage extends React.Component<{
     return (
       <surface {...styles.message}>
         {this.renderBadges()}
-        <Username color={message.color} name={message.username}/>
+        <Username color={message.color} name={message.username} rainbow={this.props.rainbow}/>
         {formatChatboxMessage(message.text, message.emotes)}
       </surface>
     );
@@ -74,9 +96,9 @@ function formatChatboxMessage (text: string, emotes: {[key: string]: string}) {
 
 const Emote = ({url}: {url: string}) => <surface {...styles.emote} backgroundImage={url}/>;
 const Badge = ({url}: {url: string}) => <surface {...styles.badge} backgroundImage={url}/>;
-const Username = ({color, name}: any) => (
+const Username = ({color, name, rainbow}: any) => (
   <surface {...styles.username(color)}>
-    {name}:
+    {rainbow ? <RainbowText>{name + ':'}</RainbowText> : `${name}:`}
   </surface>
 );
 
