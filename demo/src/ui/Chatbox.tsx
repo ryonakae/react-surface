@@ -4,6 +4,7 @@ import {observer} from 'mobx-react/custom';
 import {computed} from 'mobx';
 import {ChatMessage, ChatStore} from '../state/ChatStore';
 import {Link} from './Link';
+import * as Color from 'color';
 
 @observer
 export class Chatbox extends React.Component<{
@@ -45,7 +46,9 @@ class ChatboxMessage extends React.Component<{
     const {message} = this.props;
     return (
       <surface {...styles.message}>
-        {this.renderBadges()} {message.username}: {formatChatboxMessage(message.text, message.emotes)}
+        {this.renderBadges()}
+        <Username color={message.color} name={message.username}/>
+        {formatChatboxMessage(message.text, message.emotes)}
       </surface>
     );
   }
@@ -59,7 +62,7 @@ function formatChatboxMessage (text: string, emotes: {[key: string]: string}) {
       return <Link key={i} url={`https://twitch.tv/${res[1]}`}>{word} </Link>;
     }
     if (emotes.hasOwnProperty(word)) {
-      return <Emote url={emotes[word]}/>;
+      return <Emote key={`emote_${word}_${i}`} url={emotes[word]}/>;
     }
     return word + ' ';
   });
@@ -68,7 +71,13 @@ function formatChatboxMessage (text: string, emotes: {[key: string]: string}) {
 
 const Emote = ({url}: {url: string}) => <surface {...styles.emote} backgroundImage={url}/>;
 const Badge = ({url}: {url: string}) => <surface {...styles.badge} backgroundImage={url}/>;
+const Username = ({color, name}: any) => (
+  <surface {...styles.username(color)}>
+    {name}:
+  </surface>
+);
 
+const pixelsForASpace = 5;
 const styles = {
   chatbox: {
     backgroundColor: commonColors.darkBlue,
@@ -88,15 +97,24 @@ const styles = {
     marginTop: grid.gutter / 2
   } as SurfaceStyle,
 
+  username (color: Color) {
+    return {
+      color,
+      flexDirection: 'row',
+      fontWeight: 'bold',
+      marginRight: pixelsForASpace
+    } as SurfaceStyle;
+  },
+
   emote: {
     width: 25,
     height: 28,
-    marginRight: 5
+    marginRight: pixelsForASpace
   },
 
   badge: {
     width: 18,
     height: 18,
-    marginRight: 5
+    marginRight: pixelsForASpace
   }
 };

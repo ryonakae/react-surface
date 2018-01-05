@@ -1,4 +1,5 @@
 import {observable, action} from 'mobx';
+import * as Color from 'color';
 
 let messageIdCounter = 0;
 
@@ -45,8 +46,18 @@ export class ChatMessage {
     public username: string,
     public text: string,
     public emotes: ChatMessageEmotes = {},
-    public badges: BadgeReferences = {}
+    public badges: BadgeReferences = {},
+    public color: Color = ChatMessage.getColorForUsername(username)
   ) {}
+
+  static getColorForUsername (username: string): Color {
+    let hash = 0;
+    for (let i = 0; i < username.length; i += 1) {
+       hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return new Color(hash);
+  }
 
   static compare (a: ChatMessage, b: ChatMessage) {
     if (a.createdAt === b.createdAt) {

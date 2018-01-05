@@ -3,6 +3,7 @@ import {StreamStore} from './StreamStore';
 import {ChatMessage, ChatMessageEmotes, ChatStore} from './ChatStore';
 import {ToastyStore} from './ToastyStore';
 import {HostToasty, ResubToasty, SubToasty} from './Toasty';
+import * as Color from 'color';
 
 const tmi = require('tmi.js');
 
@@ -122,5 +123,6 @@ function parseChatMessage (channel: string, userState: any, message: string, sel
     emoteUrlsByName[emoteName] = emoteUrl;
   }
 
-  return new ChatMessage(userState['display-name'], message, emoteUrlsByName, userState.badges);
+  const color = userState.color ? Color.rgb(userState.color) : undefined;
+  return new ChatMessage(userState['display-name'], message, emoteUrlsByName, userState.badges, color);
 }
