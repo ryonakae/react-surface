@@ -51,15 +51,6 @@ export class ToastyItem extends AppStateComponent<{
     this.stopReacting();
   }
 
-  componentWillUpdate () {
-    this.tweenToState(
-      this.props.toasty.state,
-      this.appState.toasties.containerBounds,
-      this.appState.toasties.overlaySize,
-      this.messageSize
-    );
-  }
-
   tweenToState (state: ToastyState, containerBounds: Bounds, overlaySize: Size, contentSize: Size) {
     const yDelta = overlaySize.height - containerBounds.top * 2;
     const xDelta = overlaySize.width - containerBounds.right * 2;
