@@ -74,11 +74,7 @@ export class App extends React.Component<{state: AppState}> {
                 new HostToasty('tester', 1337, false)
               )
             }/>
-            <Button label="Info" onClick={() =>
-              this.props.state.toasties.addToasty(
-                new InfoToasty('Did you know that I am terrible at math?')
-              )
-            }/>
+            <Button label="Info" onClick={() => this.props.state.toasties.addNextInfoToasty()}/>
             <Button label="Message" onClick={() => this.props.state.chatbox.generateMessage()}/>
           </surface>
         )}
