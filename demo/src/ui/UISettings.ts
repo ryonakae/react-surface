@@ -48,5 +48,5 @@ export const tweenSugar = {
   press: new TweenSugar(new TweenOptions({duration: 100, easing: BezierEasing.presets.easeOut})),
   focus: new TweenSugar(new TweenOptions({duration: (12 / 60) * 1000, easing: BezierEasing.presets.easeOut})),
   spring: new TweenSugar(new TweenOptions({duration: 300, easing: new BezierEasing(0.215, 0.61, 0.355, 1)})),
-  slide: new TweenSugar(defaultOptions.extend({duration: 800, easing: BezierEasing.presets.standard}))
+  slide: new TweenSugar(defaultOptions.extend({duration: 400, easing: new BezierEasing(.33,.9,.67,.99)}))
 };

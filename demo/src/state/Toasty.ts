@@ -46,7 +46,9 @@ export class Toasty {
     }
 
     if (to !== undefined) {
-      this.state = to;
+      if (to > this.state) {
+        this.state = to;
+      }
     } else {
       this.state += 1;
     }

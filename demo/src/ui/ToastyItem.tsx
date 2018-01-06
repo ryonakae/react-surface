@@ -5,15 +5,20 @@ import {observer} from 'mobx-react/custom';
 import {Crossfader} from '../lib/Crossfader';
 import {commonColors, grid} from './UISettings';
 import {AppStateComponent} from '../AppStateComponent';
-import {IReactionDisposer, autorun, action, observable} from 'mobx';
+import {autorun, action, observable, when} from 'mobx';
 import {TweenOptions} from '../../../src/lib/tween/TweenOptions';
+import {Howl} from 'howler';
 
 @observer
 export class ToastyItem extends AppStateComponent<{
   index: number,
   toasty: Toasty
 }> {
-  private stopReacting: IReactionDisposer;
+  static enterSound = new Howl({src: require('../assets/notice.wav')});
+  static presentSound = new Howl({src: require('../assets/in.wav')});
+  static exitSound = new Howl({src: require('../assets/out.wav')});
+
+  private reactionDisposers: Array<() => void>;
   @observable messageSize: Size = {width: 0, height: 0};
 
   tweens = {
@@ -37,18 +42,25 @@ export class ToastyItem extends AppStateComponent<{
   }
 
   componentWillMount () {
-    this.stopReacting = autorun(() =>
-      this.tweenToState(
-        this.props.toasty.state,
-        this.appState.toasties.containerBounds,
-        this.appState.toasties.overlaySize,
-        this.messageSize
+    this.reactionDisposers = [
+      when(() => this.props.toasty.state === ToastyState.Exclaiming, () => ToastyItem.enterSound.play()),
+      when(() => this.props.toasty.state === ToastyState.Presenting, () => ToastyItem.presentSound.play()),
+      when(() => this.props.toasty.state > ToastyState.Presenting, () => ToastyItem.exitSound.play()),
+      autorun(() =>
+        this.tweenToState(
+          this.props.toasty.state,
+          this.appState.toasties.containerBounds,
+          this.appState.toasties.overlaySize,
+          this.messageSize
+        )
       )
-    );
+    ];
   }
 
   componentWillUnmount () {
-    this.stopReacting();
+    while (this.reactionDisposers.length) {
+      this.reactionDisposers.pop()();
+    }
   }
 
   tweenToState (state: ToastyState, containerBounds: Bounds, overlaySize: Size, contentSize: Size) {
@@ -110,12 +122,8 @@ export class ToastyItem extends AppStateComponent<{
     );
   }
 
-  onClick (e: PIXI.interaction.InteractionEvent) {
-    if (e.data.button) {
-      this.props.toasty.progress(this.props.toasty.state - 1);
-    } else {
-      this.props.toasty.progress();
-    }
+  onClick () {
+    this.props.toasty.progress();
   }
 }
 

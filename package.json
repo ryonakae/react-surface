@@ -28,7 +28,8 @@
     "twitch-api-v5": "2.0.2",
     "webfontloader": "1.6.28",
     "yoga-layout": "1.8.0",
-    "axios": "0.17.1"
+    "axios": "0.17.1",
+    "howler": "2.0.7"
   },
   "devDependencies": {
     "@types/color": "2.0.0",
@@ -46,6 +47,7 @@
     "@types/moment": "2.13.0",
     "@types/query-string": "5.0.1",
     "@types/axios": "0.14.0",
+    "@types/howler": "2.0.5",
     "autodll-webpack-plugin": "0.3.8",
     "css-loader": "0.28.8",
     "extract-text-webpack-plugin": "3.0.2",
