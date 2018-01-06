@@ -37,6 +37,8 @@ type Size = {
 type Bounds = {
   top: number,
   right: number,
+  width: number;
+  height: number;
   bottom: number,
   left: number
 };
@@ -140,6 +142,7 @@ type SurfaceEvents = {
   onMouseEnter?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseLeave?: (e: PIXI.interaction.InteractionEvent) => void;
   onSizeChanged?: (size: Size) => void;
+  onBoundsChanged?: (bounds: Bounds) => void;
 };
 
 type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {

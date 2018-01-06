@@ -20,6 +20,7 @@ export class Surface {
   private surfaceMaskId: SurfaceMaskId;
 
   public pixiContainer: Container;
+  private lastFrameBounds: Bounds;
   private dropShadowFilter: DropShadowFilter;
   private backgroundColor?: SurfaceBackground;
   private backgroundImage?: SurfaceImage;
@@ -27,7 +28,6 @@ export class Surface {
   private mask?: SurfaceBorder;
   private childContainer: Container;
   private pixiText?: Text;
-  private layout?: YogaLayout;
   private textStyleGetters: GettableProps<PIXI.TextStyleOptions> = {};
   private tweens: TweenableProps<SurfaceProps> = {};
 
@@ -59,6 +59,7 @@ export class Surface {
     }
 
     this.pixiContainer.name = type!;
+    this.lastFrameBounds = this.pixiContainer.getBounds();
   }
 
   destroy () {
@@ -174,7 +175,7 @@ export class Surface {
           tween = new Tween(next.to, next.options);
           tween.instruct(next);
           (this.tweens as any)[key] = tween;
-        } else if (!next.equals(tween.lastInstruction)) {
+        } else if (!next.equals(tween.instruction)) {
           tween.instruct(next);
         }
         continue;
@@ -306,14 +307,6 @@ export class Surface {
 
   updatePixi () {
     const layout = this.yogaNode.getComputedLayout();
-    const didLayoutSizeChange = !this.layout || layout.width !== this.layout.width ||
-      layout.height !== this.layout.height;
-
-    if (didLayoutSizeChange) {
-      this.emitEvent('onSizeChanged', layout);
-    }
-
-    this.layout = layout;
 
     this.pixiContainer.rotation = this.tweenableProps.rotation.value || 0;
     this.pixiContainer.skew.set(
@@ -333,9 +326,11 @@ export class Surface {
       layout.top + definedOr(this.tweenableProps.translateY.value, 0) + this.pixiContainer.pivot.y
     );
 
+    const changes = this.pollBoundsChanges();
+
     if (this.pixiText) {
       Object.assign(this.pixiText.style, this.cascadedTextStyle, {wordWrapWidth: layout.width});
-      if (didLayoutSizeChange) { // TODO check if
+      if (changes.size) { // TODO check if
         this.yogaNode.markDirty();
       }
     }
@@ -375,6 +370,27 @@ export class Surface {
       this.dropShadowFilter.color = definedOr(this.tweenableProps.dropShadowColor.value, commonColors.transparent).rgbNumber();
       this.dropShadowFilter.distance = definedOr(this.tweenableProps.dropShadowDistance.value, 0);
     }
+  }
+
+  pollBoundsChanges () {
+    const bounds = this.pixiContainer.getBounds();
+
+    const sizeChanged = bounds.width !== this.lastFrameBounds.width || bounds.height !== this.lastFrameBounds.height;
+    const positionChanged = bounds.left !== this.lastFrameBounds.left || bounds.top !== this.lastFrameBounds.top;
+
+    if (sizeChanged) {
+      this.emitEvent('onBoundsChanged', bounds);
+      this.emitEvent('onSizeChanged', bounds);
+    } else if (positionChanged) {
+      this.emitEvent('onBoundsChanged', bounds);
+    }
+
+    this.lastFrameBounds = bounds;
+
+    return {
+      size: sizeChanged,
+      position: positionChanged
+    };
   }
 
   updateMasks (layout: Size) {

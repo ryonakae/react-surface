@@ -13,7 +13,8 @@ export const surfaceEvents: {[key: string]: SurfaceEventInfo} = {
   onMouseUp: {pixiName: 'mouseup', isInteractive: true},
   onMouseEnter: {pixiName: 'mouseover', isInteractive: true},
   onMouseLeave: {pixiName: 'mouseout', isInteractive: true},
-  onSizeChanged: {pixiName: 'resize', isInteractive: false}
+  onSizeChanged: {pixiName: 'bogusEvent_size', isInteractive: false},
+  onBoundsChanged: {pixiName: 'bogusEvent_bounds', isInteractive: false}
 };
 
 export const pixiEvents: {[key: string]: SurfaceEventInfo} = {};
