@@ -8,14 +8,11 @@ import {defaultOptions} from '../../../src/lib/tween/settings';
 
 const screenWidth = 1920;
 const screenHeight = 1080;
-const commonMargin = screenHeight * 0.05;
-const pTop = commonMargin;
-const pBottom = commonMargin / 2;
-const pHorizontal = commonMargin;
 
 export const grid: Grid = new Grid(
-  screenWidth, screenHeight, 16, 16, 10, 10, 2,
-  pTop, pHorizontal, pBottom, pHorizontal
+  screenWidth, screenHeight,
+  16, 16, 10, 10, 2,
+  screenHeight * 0.05
 );
 
 export const commonColors = {

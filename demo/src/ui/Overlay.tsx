@@ -49,24 +49,6 @@ export class Overlay extends AppStateComponent {
             <Chatbox style={styles.chatbox} chatStore={this.appState.chatbox}/>
           </surface>
         </surface>
-
-        <surface {...styles.footer}>
-          <RichLink
-            icon={require('../assets/codenjoy-icon.jpg')}
-            name="codenjoy.tv"
-            url="http://codenjoy.tv"
-          />
-          <RichLink
-            icon={require('../assets/discord-icon.png')}
-            name="discord.gg/Y2t9C2s"
-            url="http://discord.gg/Y2t9C2s"
-          />
-          <RichLink
-            icon={require('../assets/instagram-icon.png')}
-            name="instagram.com/codenjoy"
-            url="http://instagram.com/codenjoy"
-          />
-        </surface>
       </surface>
     );
   }
@@ -104,6 +86,7 @@ const styles = SurfaceStyleSheet.create({
     flexGrow: 1,
     fontSize: 16,
     justifyContent: 'flex-end',
+    backgroundColor: Color.rgb('#ff0000'),
     overflow: 'hidden'
   },
 
@@ -145,12 +128,5 @@ const styles = SurfaceStyleSheet.create({
 
   chatbox: {
     height: grid.ySpan(8)
-  },
-
-  footer: {
-    height: grid.ySpan(1),
-    marginTop: commonPadding,
-    flexDirection: 'row',
-    justifyContent: 'space-around'
   }
 });
