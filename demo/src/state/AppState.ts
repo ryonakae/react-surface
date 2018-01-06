@@ -13,7 +13,7 @@ export class AppState {
   options = new OptionsStore();
 
   initializeBehavior () {
-    this.toasties.setInfoToastyTexts(infoToasties);
+    this.toasties.setInfoToastyContent(infoToasties);
     return this.toasties.initializeBehavior();
   }
 }

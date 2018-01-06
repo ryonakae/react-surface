@@ -14,8 +14,8 @@ export const RichLink = (props: RichLinkProps) => (
   </surface>
 );
 
-export const Link = ({children, url}: any) => (
-  <surface flexDirection="row" wordWrap flexWrap="wrap" onClick={() => window.open(url, '_blank')}>
+export const Link = ({children, url, ...rest}: any) => (
+  <surface onClick={() => window.open(url, '_blank')} {...rest}>
     {children}
   </surface>
 );

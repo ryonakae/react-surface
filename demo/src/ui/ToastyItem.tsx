@@ -114,8 +114,8 @@ export class ToastyItem extends AppStateComponent<{
     return (
       <surface {...style} onClick={this.onClick.bind(this)}>
         <Crossfader>
-          <surface key={this.props.toasty.message} onSizeChanged={this.updateSize.bind(this)}>
-            {this.props.toasty.message}
+          <surface key={this.props.toasty.state} onSizeChanged={this.updateSize.bind(this)}>
+            {this.props.toasty.content}
           </surface>
         </Crossfader>
       </surface>

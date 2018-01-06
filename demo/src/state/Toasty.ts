@@ -17,8 +17,8 @@ export enum ToastyType {
 
 export class Toasty {
   id: number = idCounter += 1;
-  fullMessage: string;
-  shortMessage: string;
+  fullContent: any;
+  shortContent: any;
   createdAt: Date = new Date();
   type: ToastyType = ToastyType.Middle;
 
@@ -28,14 +28,14 @@ export class Toasty {
     return this.type !== ToastyType.Top;
   }
 
-  @computed get message () {
+  @computed get content () {
     if (this.state <= ToastyState.Exclaiming) {
       return '!';
     }
     if (this.state <= ToastyState.Presenting) {
-      return this.fullMessage;
+      return this.fullContent;
     }
-    return this.shortMessage || this.fullMessage;
+    return this.shortContent || this.fullContent;
   }
 
   @action
@@ -70,12 +70,12 @@ export class SubToasty extends Toasty {
   ) {
     super();
 
-    this.fullMessage = `${username} just subscribed!`;
+    this.fullContent = `${username} just subscribed!`;
     if (message) {
-      this.fullMessage += `\n"${message}"`;
+      this.fullContent += `\n"${message}"`;
     }
 
-    this.shortMessage = `Sub: ${username}`;
+    this.shortContent = `Sub: ${username}`;
   }
 }
 
@@ -88,12 +88,12 @@ export class ResubToasty extends Toasty {
   ) {
     super();
 
-    this.fullMessage = `${username} just resubscribed (x${months})!`;
+    this.fullContent = `${username} just resubscribed (x${months})!`;
     if (message) {
-      this.fullMessage += `\n"${message}"`;
+      this.fullContent += `\n"${message}"`;
     }
 
-    this.shortMessage = `Resub: ${username} (x${months})`;
+    this.shortContent = `Resub: ${username} (x${months})`;
   }
 }
 
@@ -104,8 +104,8 @@ export class HostToasty extends Toasty {
     autoHost: boolean
   ) {
     super();
-    this.fullMessage = `${username} just hosted with ${viewers} viewers!`;
-    this.shortMessage = `Host: ${username} (x${viewers})`;
+    this.fullContent = `${username} just hosted with ${viewers} viewers!`;
+    this.shortContent = `Host: ${username} (x${viewers})`;
   }
 }
 
@@ -114,8 +114,8 @@ export class InfoToasty extends Toasty {
     message: string,
   ) {
     super();
-    this.fullMessage = message;
-    this.shortMessage = message;
+    this.fullContent = message;
+    this.shortContent = message;
     this.type = ToastyType.Top;
   }
 }

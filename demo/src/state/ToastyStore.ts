@@ -21,7 +21,7 @@ const toastyTimes: {[key: string]: number} = {
 export class ToastyStore {
   private isRunning: boolean = false;
   private toastyTimeoutIds: any = {};
-  private infoToastyTexts: string[] = [];
+  private infoToastyContent: any[] = [];
   private nextInfoToastyIndex: number = -1;
 
   @observable toasties: Toasty[] = [];
@@ -94,13 +94,13 @@ export class ToastyStore {
     }
   }
 
-  setInfoToastyTexts (texts: string[]) {
-    this.infoToastyTexts = texts;
+  setInfoToastyContent (content: any[]) {
+    this.infoToastyContent = content;
   }
 
   pullNextInfoToasty () {
-    this.nextInfoToastyIndex = (this.nextInfoToastyIndex + 1) % this.infoToastyTexts.length;
-    return new InfoToasty(this.infoToastyTexts[this.nextInfoToastyIndex]);
+    this.nextInfoToastyIndex = (this.nextInfoToastyIndex + 1) % this.infoToastyContent.length;
+    return new InfoToasty(this.infoToastyContent[this.nextInfoToastyIndex]);
   }
 
   addNextInfoToasty () {
