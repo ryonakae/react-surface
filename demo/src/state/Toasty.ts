@@ -40,7 +40,7 @@ export class Toasty {
 
   @action
   progress (to: ToastyState = this.state + 1) {
-    if (this.shouldBeLogged && to === ToastyState.Logging) {
+    if (!this.shouldBeLogged && to === ToastyState.Logging) {
       this.state = to + 1;
       return;
     }
