@@ -385,7 +385,7 @@ export class Surface {
       this.emitEvent('onBoundsChanged', bounds);
     }
 
-    this.lastFrameBounds = bounds;
+    this.lastFrameBounds = bounds.clone();
 
     return {
       size: sizeChanged,
