@@ -2,23 +2,15 @@ import * as React from 'react';
 import {SurfaceStyleSheet} from '../../../src/lib/SurfaceStyleSheet';
 import {commonColors, commonStyles, grid} from './UISettings';
 import {observer} from 'mobx-react/custom';
-import {computed} from 'mobx';
 import {duration} from 'moment';
 import * as Color from 'color';
 import {ToastyList} from './ToastyList';
 import {AppStateComponent} from '../AppStateComponent';
 import {Chatbox} from './Chatbox';
+import {StreamStore} from '../state/StreamStore';
 
 @observer
 export class Overlay extends AppStateComponent {
-  @computed get uptimeString () {
-    const d = duration(this.appState.stream.uptime);
-
-    return [d.hours(), d.minutes(), d.seconds()]
-      .map((value) => value.toString().padStart(2, '0'))
-      .join(':');
-  }
-
   render () {
     return (
       <surface
@@ -32,12 +24,10 @@ export class Overlay extends AppStateComponent {
             {this.appState.stream.title}
           </surface>
           <surface {...styles.stats}>
-            <surface {...styles.statsItem}>
-              {this.appState.stream.viewerCount} viewers
-            </surface>
-            <surface {...styles.statsItem}>
-              {this.uptimeString} uptime
-            </surface>
+            {this.appState.stream.isOnline ?
+              <StreamStats stream={this.appState.stream}/> :
+              'Offline'
+            }
           </surface>
         </surface>
 
@@ -49,6 +39,27 @@ export class Overlay extends AppStateComponent {
           </surface>
         </surface>
       </surface>
+    );
+  }
+}
+
+@observer
+class StreamStats extends React.Component<{stream: StreamStore}> {
+  render () {
+    const d = duration(this.props.stream.uptime);
+    const uptimeString = [d.hours(), d.minutes(), d.seconds()]
+      .map((value) => value.toString().padStart(2, '0'))
+      .join(':');
+
+    return (
+      <React.Fragment>
+        <surface {...styles.statsItem}>
+          {this.props.stream.viewerCount} viewers
+        </surface>
+        <surface {...styles.statsItem}>
+          {uptimeString} uptime
+        </surface>
+      </React.Fragment>
     );
   }
 }
@@ -85,7 +96,6 @@ const styles = SurfaceStyleSheet.create({
     flexGrow: 1,
     fontSize: 16,
     justifyContent: 'flex-end',
-    backgroundColor: Color.rgb('#ff0000'),
     overflow: 'hidden'
   },
 
