@@ -1,6 +1,15 @@
 import {Toasty, ToastyState} from './Toasty';
 import {observable, computed, action, reaction} from 'mobx';
 
+const emptyBounds = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+  width: 0,
+  height: 0
+};
+
 export const maxToastyLogSize = 3;
 const presentationCooldownTime = 3500;
 const toastyTimes: {[key: string]: number} = {
@@ -12,7 +21,8 @@ export class ToastyStore {
   private toastyTimeoutIds: any = {};
 
   @observable toasties: Toasty[] = [];
-  @observable containerSize: Size = {width: 0, height: 0};
+  @observable containerBounds: Bounds = emptyBounds;
+  @observable overlaySize: Size = {width: 0, height: 0};
   @observable currentTime: number = 0;
   @observable nextPresentationTime: number = 0;
 
@@ -52,8 +62,13 @@ export class ToastyStore {
   }
 
   @action
-  updateContainerSize (size: Size) {
-    this.containerSize = size;
+  updateContainerBounds (bounds: Bounds) {
+    this.containerBounds = bounds;
+  }
+
+  @action
+  updateOverlaySize (size: Size) {
+    this.overlaySize = size;
   }
 
   @action

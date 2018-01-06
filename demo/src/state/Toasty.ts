@@ -33,9 +33,7 @@ export class Toasty {
   @action
   progress (to: ToastyState = this.state + 1) {
     if (to !== undefined) {
-      if (this.state < to) {
-        this.state = to;
-      }
+      this.state = to;
     } else {
       this.state += 1;
     }

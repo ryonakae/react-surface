@@ -22,7 +22,10 @@ export class Overlay extends AppStateComponent {
 
   render () {
     return (
-      <surface {...styles.streamOverlay}>
+      <surface
+        {...styles.streamOverlay}
+        onSizeChanged={(size) => this.appState.toasties.updateOverlaySize(size)}
+      >
         <surface maskedBy={1} {...styles.background}/>
 
         <surface {...styles.header}>
