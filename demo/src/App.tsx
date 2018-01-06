@@ -10,7 +10,7 @@ import {appStateContext} from './AppStateComponent';
 import {AppState} from './state/AppState';
 import {observer} from 'mobx-react/custom';
 import {observable, computed, action} from 'mobx';
-import {HostToasty, InfoToasty, ResubToasty, SubToasty} from './state/Toasty';
+import {HostToasty, ResubToasty, SubToasty} from './state/Toasty';
 
 export const mockedMessages = [
   'You are looking mighty fine today, good sir!',
