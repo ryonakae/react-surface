@@ -10,12 +10,23 @@ export enum ToastyState {
   Archived
 }
 
+export enum ToastyType {
+  Top,
+  Middle
+}
+
 export class Toasty {
   id: number = idCounter += 1;
   fullMessage: string;
   shortMessage: string;
   createdAt: Date = new Date();
+  type: ToastyType = ToastyType.Middle;
+
   @observable state = ToastyState.Idle;
+
+  get shouldBeLogged () {
+    return this.type !== ToastyType.Top;
+  }
 
   @computed get message () {
     if (this.state <= ToastyState.Exclaiming) {
@@ -24,14 +35,16 @@ export class Toasty {
     if (this.state <= ToastyState.Presenting) {
       return this.fullMessage;
     }
-    if (this.state <= ToastyState.Logging) {
-      return this.shortMessage || this.fullMessage;
-    }
-    return '...';
+    return this.shortMessage || this.fullMessage;
   }
 
   @action
   progress (to: ToastyState = this.state + 1) {
+    if (this.shouldBeLogged && to === ToastyState.Logging) {
+      this.state = to + 1;
+      return;
+    }
+
     if (to !== undefined) {
       this.state = to;
     } else {
@@ -91,5 +104,16 @@ export class HostToasty extends Toasty {
     super();
     this.fullMessage = `${username} just hosted with ${viewers} viewers!`;
     this.shortMessage = `Host: ${username} (x${viewers})`;
+  }
+}
+
+export class InfoToasty extends Toasty {
+  constructor (
+    message: string,
+  ) {
+    super();
+    this.fullMessage = message;
+    this.shortMessage = message;
+    this.type = ToastyType.Top;
   }
 }

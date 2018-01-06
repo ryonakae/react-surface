@@ -10,7 +10,7 @@ import {appStateContext} from './AppStateComponent';
 import {AppState} from './state/AppState';
 import {observer} from 'mobx-react/custom';
 import {observable, computed, action} from 'mobx';
-import {HostToasty, ResubToasty, SubToasty} from './state/Toasty';
+import {HostToasty, InfoToasty, ResubToasty, SubToasty} from './state/Toasty';
 
 export const mockedMessages = [
   'You are looking mighty fine today, good sir!',
@@ -72,6 +72,11 @@ export class App extends React.Component<{state: AppState}> {
             <Button label="Host" onClick={() =>
               this.props.state.toasties.addToasty(
                 new HostToasty('tester', 1337, false)
+              )
+            }/>
+            <Button label="Info" onClick={() =>
+              this.props.state.toasties.addToasty(
+                new InfoToasty('Did you know that I am terrible at math?')
               )
             }/>
             <Button label="Message" onClick={() => this.props.state.chatbox.generateMessage()}/>

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {Toasty, ToastyState} from '../state/Toasty';
+import {Toasty, ToastyState, ToastyType} from '../state/Toasty';
 import {tweenSugar} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {Crossfader} from '../lib/Crossfader';
@@ -18,9 +18,9 @@ export class ToastyItem extends AppStateComponent<{
 
   tweens = {
     opacity: tweenSugar.slide.tween(0),
-    translateY: tweenSugar.slide.tween(0, new TweenOptions({immediate: true})),
-    translateX: tweenSugar.slide.tween(0, new TweenOptions({immediate: true})),
-    width: tweenSugar.slide.tween(0, new TweenOptions({immediate: true}))
+    translateY: tweenSugar.slide.tween(0, new TweenOptions({immediate: true, rounded: true})),
+    translateX: tweenSugar.slide.tween(0, new TweenOptions({immediate: true, rounded: true})),
+    width: tweenSugar.slide.tween(0, new TweenOptions({immediate: true, rounded: true}))
   };
 
   async componentWillEnter () {
@@ -63,37 +63,36 @@ export class ToastyItem extends AppStateComponent<{
   tweenToState (state: ToastyState, containerBounds: Bounds, overlaySize: Size, contentSize: Size) {
     const yDelta = overlaySize.height - containerBounds.top * 2;
     const xDelta = overlaySize.width - containerBounds.right * 2;
-
-    const y = this.tweens.translateY;
-    const x = this.tweens.translateX;
+    const isTop = this.props.toasty.type === ToastyType.Top;
 
     const toastySize = {
       width: contentSize.width + toastyPadding * 2,
-      height: contentSize.height + toastyPadding * 2
+      height: Math.max(contentSize.height + toastyPadding * 2, defaultToastyHeight) + grid.gutter
     };
 
     this.tweens.width.to(toastySize.width);
 
+    const y = this.tweens.translateY;
+    const x = this.tweens.translateX;
     switch (state) {
       case ToastyState.Idle:
         x.to((xDelta - contentSize.width) / 2);
-        y.to(yDelta + toastyHeight);
+        y.to(yDelta + defaultToastyHeight);
         break;
       case ToastyState.Exclaiming:
         x.to((xDelta + toastySize.width) / 2);
-        y.to(yDelta);
+        y.to(isTop ? -toastySize.height : yDelta);
         break;
       case ToastyState.Presenting:
         x.to((xDelta + toastySize.width) / 2);
-        y.to((yDelta) / 2);
+        y.to(isTop ? -toastySize.height : (yDelta - toastySize.height) / 2);
         break;
       case ToastyState.Logging:
         x.to(0);
-        y.to(this.props.index * (toastyHeight + toastyPadding));
+        y.to(this.props.index * (defaultToastyHeight + toastyPadding));
         break;
       case ToastyState.Archived:
-        x.to(0);
-        y.to((this.props.index - 1) * (toastyHeight + toastyPadding));
+        y.to(y.value - toastySize.height);
         break;
     }
   }
@@ -130,7 +129,7 @@ export class ToastyItem extends AppStateComponent<{
 }
 
 export const toastyPadding = grid.gutter;
-export const toastyHeight = grid.ySpan(1);
+export const defaultToastyHeight = grid.ySpan(1);
 export const toastySpacing = toastyPadding;
 
 const styles = {
@@ -138,7 +137,7 @@ const styles = {
     position: 'absolute',
     right: 0,
     padding: toastyPadding,
-    height: toastyHeight,
+    height: defaultToastyHeight,
     borderRadius: toastyPadding,
     justifyContent: 'center',
     alignItems: 'center',
