@@ -6,7 +6,6 @@ import {computed} from 'mobx';
 import {duration} from 'moment';
 import * as Color from 'color';
 import {ToastyList} from './ToastyList';
-import {RichLink} from './Link';
 import {AppStateComponent} from '../AppStateComponent';
 import {Chatbox} from './Chatbox';
 
