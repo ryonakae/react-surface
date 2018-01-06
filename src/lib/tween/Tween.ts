@@ -12,6 +12,7 @@ type ValueFunction<TValue> = () => TValue;
 
 export class Tween<TValue> {
   public readonly id = idCounter += 1;
+  public promise: Promise<TValue>;
 
   private valueFunction?: ValueFunction<TValue>;
   private intrinsicValue?: TValue;
@@ -20,7 +21,7 @@ export class Tween<TValue> {
   private arithmetic: IArithmetic<TValue>;
   private sugar = new TweenSugar(this.options);
 
-  lastInstruction: TweenInstruction<TValue>;
+  instruction: TweenInstruction<TValue>;
 
   constructor (
     value: TValue | ValueFunction<TValue>,
@@ -28,9 +29,11 @@ export class Tween<TValue> {
   ) {
     if (typeof value === 'function') {
       this.valueFunction = value;
+      this.promise = Promise.resolve<TValue>(this.valueFunction());
     } else {
       this.intrinsicValue = value;
       this.arithmetic = getArithmetic(value);
+      this.promise = Promise.resolve<TValue>(value);
     }
   }
 
@@ -57,18 +60,27 @@ export class Tween<TValue> {
   }
 
   instruct (inst: TweenInstruction<TValue>) {
-    this.lastInstruction = inst;
-
     // Merge tween options with expression options
     inst = inst.extend({options: this.options.extend(inst.options)});
 
+    // Remember the instruction
+    const previousInstruction = this.instruction;
+    this.instruction = inst;
+
+    // Stop any ongoing instructions
     this.stop();
+
+    // In immediate mode set the value immediately for the first instruction received
+    if (!previousInstruction && inst.options.immediate) {
+      this.set(inst.to);
+      return;
+    }
 
     if (inst.from !== undefined) {
       this.intrinsicValue = inst.from;
     }
 
-    return new Promise<TValue>((resolve) => {
+    this.promise = new Promise<TValue>((resolve) => {
       this.resolvers.push(resolve);
 
       let duration = inst.options!.duration;
@@ -107,6 +119,8 @@ export class Tween<TValue> {
         .onComplete(this.onTweenCompleted.bind(this))
         .start();
     });
+
+    return this.promise;
   }
 
   // Syntax sugar for common tween instructions
