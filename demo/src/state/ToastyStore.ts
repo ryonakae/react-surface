@@ -11,7 +11,7 @@ const emptyBounds = {
 };
 
 export const maxToastyLogSize = 3;
-const presentationCooldown = 0;
+const presentationCooldown = 5000;
 const infoToastyInterval = 60 * 5 * 1000;
 const toastyTimes: {[key: string]: number} = {
   [ToastyState.Exclaiming]: 1500,
