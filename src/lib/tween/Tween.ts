@@ -38,10 +38,8 @@ export class Tween<TValue> {
   }
 
   get value () {
-    if (this.valueFunction) {
-      return this.valueFunction();
-    }
-    return this.intrinsicValue;
+    const value = this.valueFunction ? this.valueFunction() : this.intrinsicValue;
+    return this.options.rounded ? this.arithmetic.round(value) : value;
   }
 
   private onTweenCompleted () {
