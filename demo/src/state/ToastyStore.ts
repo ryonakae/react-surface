@@ -1,5 +1,5 @@
-import {Toasty, ToastyState} from './Toasty';
-import {observable, computed, action, reaction} from 'mobx';
+import {InfoToasty, Toasty, ToastyState} from './Toasty';
+import {observable, computed, action, reaction, when} from 'mobx';
 
 const emptyBounds = {
   top: 0,
@@ -11,24 +11,23 @@ const emptyBounds = {
 };
 
 export const maxToastyLogSize = 3;
-const presentationCooldownTime = 3500;
+const presentationCooldown = 0;
+const infoToastyInterval = 60 * 5 * 1000;
 const toastyTimes: {[key: string]: number} = {
-  [ToastyState.Exclaiming]: 1000,
-  [ToastyState.Presenting]: 3000
+  [ToastyState.Exclaiming]: 1500,
+  [ToastyState.Presenting]: 6000
 };
 
 export class ToastyStore {
+  private isRunning: boolean = false;
   private toastyTimeoutIds: any = {};
+  private infoToastyTexts: string[] = [];
+  private nextInfoToastyIndex: number = -1;
 
   @observable toasties: Toasty[] = [];
   @observable containerBounds: Bounds = emptyBounds;
   @observable overlaySize: Size = {width: 0, height: 0};
   @observable currentTime: number = 0;
-  @observable nextPresentationTime: number = 0;
-
-  @computed get canStartNewPresentation () {
-    return this.nextPresentationTime <= this.currentTime;
-  }
 
   @computed get visibleToasties () {
     return this.toasties
@@ -42,23 +41,19 @@ export class ToastyStore {
       .sort(Toasty.compareAge);
   }
 
-  @computed get currentPresentation () {
-    const pres = this.toasties.find((toasty) =>
-      toasty.state !== ToastyState.Idle && toasty.state <= ToastyState.Presenting
+  @computed get presentation () {
+    return this.toasties.find((toasty) =>
+      toasty.state > ToastyState.Idle && toasty.state <= ToastyState.Presenting
     );
-
-    if (pres) {
-      return pres;
-    }
-
-    return this.toasties
-      .filter((toasty) => toasty.state === ToastyState.Idle)
-      .sort(Toasty.compareAge)[0];
   }
 
   @action
   addToasty (toasty: Toasty) {
     this.toasties.push(toasty);
+
+    if (!this.presentation) {
+      this.presentNextToasty();
+    }
   }
 
   @action
@@ -72,13 +67,18 @@ export class ToastyStore {
   }
 
   @action
-  cooldownPresentation () {
-    this.nextPresentationTime = this.currentTime + presentationCooldownTime;
-  }
-
-  @action
   updateTime () {
     this.currentTime = new Date().getTime();
+  }
+
+  presentNextToasty () {
+    const nextToasty = this.toasties
+      .filter((toasty) => toasty.state === ToastyState.Idle)
+      .sort(Toasty.compareAge)[0];
+
+    if (nextToasty) {
+      this.progress(nextToasty);
+    }
   }
 
   progress (toasty: Toasty, to: ToastyState = toasty.state + 1) {
@@ -94,23 +94,45 @@ export class ToastyStore {
     }
   }
 
+  setInfoToastyTexts (texts: string[]) {
+    this.infoToastyTexts = texts;
+  }
+
+  pullNextInfoToasty () {
+    this.nextInfoToastyIndex = (this.nextInfoToastyIndex + 1) % this.infoToastyTexts.length;
+    return new InfoToasty(this.infoToastyTexts[this.nextInfoToastyIndex]);
+  }
+
+  addNextInfoToasty () {
+    const toasty = this.pullNextInfoToasty();
+    this.addToasty(toasty);
+
+    if (this.isRunning) {
+      when(
+        () => toasty.state === ToastyState.Archived,
+        () => setTimeout(() => this.addNextInfoToasty(), infoToastyInterval)
+      );
+    }
+  }
+
   initializeBehavior () {
+    this.isRunning = true;
+    this.addNextInfoToasty();
+
     // Update time every second
     const currentTimeIntervalId = setInterval(() => this.updateTime(), 1000);
     return [
-      () => clearInterval(currentTimeIntervalId),
+      () => {
+        clearInterval(currentTimeIntervalId);
+        this.isRunning = false;
+      },
 
-      // Show new presentations
-      reaction(
-        () => ({toasty: this.currentPresentation, allowed: this.canStartNewPresentation}),
-        (payload) => {
-          if (payload.toasty && payload.allowed) {
-            this.cooldownPresentation();
-            this.progress(payload.toasty);
-          }
-        },
-        true
-      ),
+      // Present the next toasty as soon as the current is done
+      reaction(() => this.presentation, (pres) => {
+        if (!pres) {
+          setTimeout(() => this.presentNextToasty(), presentationCooldown);
+        }
+      }),
 
       // Archive toasties when log is full
       reaction(

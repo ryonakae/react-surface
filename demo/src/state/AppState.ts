@@ -3,6 +3,7 @@ import {SurfaceStore} from '../../../src/lib/SurfaceStore';
 import {StreamStore} from './StreamStore';
 import {ChatStore} from './ChatStore';
 import {OptionsStore} from './OptionsStore';
+import {infoToasties} from '../config/infoToasties';
 
 export class AppState {
   surface: SurfaceStore;
@@ -12,6 +13,7 @@ export class AppState {
   options = new OptionsStore();
 
   initializeBehavior () {
+    this.toasties.setInfoToastyTexts(infoToasties);
     return this.toasties.initializeBehavior();
   }
 }
