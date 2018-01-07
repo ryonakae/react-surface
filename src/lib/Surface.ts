@@ -1,7 +1,7 @@
 import {Application, Container, Graphics, Text, Sprite,
   TextMetrics, TextStyle, DisplayObject, interaction} from 'pixi.js';
 import {diffEventProps, pixiEvents, surfaceEvents} from './events';
-import {getYogaValueTransformer} from './YogaHelpers';
+import {setYogaValue} from './YogaHelpers';
 import {Tween} from './tween/Tween';
 import TweenInstruction from './tween/TweenInstruction';
 import {uniq} from 'lodash';
@@ -259,15 +259,9 @@ export class Surface {
   }
 
   updateYoga () {
-    const yogaNode = this.yogaNode as any;
     for (const key in this.props) {
-      const transformer = getYogaValueTransformer(key);
-      const setFn = yogaNode[transformer.functionName];
-      if (setFn) {
-        const value = ((this.tweenableProps as any)[key] as Tween<any>).value;
-        const args = transformer.transform(value);
-        setFn.apply(yogaNode, args);
-      }
+      const value = ((this.tweenableProps as any)[key] as Tween<any>).value;
+      setYogaValue(this.yogaNode, key, value);
     }
   }
 
