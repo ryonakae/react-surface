@@ -178,16 +178,16 @@ export class Surface {
         } else if (!next.equals(tween.instruction)) {
           tween.instruct(next);
         }
-        continue;
-      }
-
-      if (next instanceof Tween) {
+      } else if (next instanceof Tween) {
         (this.tweens as any)[key] = next;
-        continue;
+        if (prev instanceof TweenInstruction) {
+          tween.stop();
+        }
+        tween = next;
       }
 
-      if (tween && prev instanceof TweenInstruction) {
-        tween.stop();
+      if (!tween) {
+        delete (this.tweens as any)[key];
       }
     }
 
