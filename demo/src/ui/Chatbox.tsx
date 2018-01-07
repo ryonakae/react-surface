@@ -13,7 +13,7 @@ export class Chatbox extends React.Component<{
   style: SurfaceStyle
 }> {
   @computed get entries () {
-    const max = 25;
+    const max = 35; // Magic number
     const sorted = this.props.chatStore.messages.slice().sort(ChatMessage.compare);
     const slice = sorted.slice(sorted.length > max ? sorted.length - max : 0);
 
