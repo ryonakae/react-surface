@@ -3,7 +3,7 @@ import {IconWithLabel} from '../ui/IconWithLabel';
 import {Link} from '../ui/Link';
 
 export const infoToasties = [
-  <IconWithLabel icon={require('../assets/codenjoy-icon.jpg')}>?
+  <IconWithLabel icon={require('../assets/codenjoy-icon.jpg')}>
     Visit <Link url="http://codenjoy.tv">codenjoy.tv</Link> for an even better streaming experience!
   </IconWithLabel>,
   <IconWithLabel icon={require('../assets/discord-icon.png')}>
