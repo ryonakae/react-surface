@@ -97,9 +97,9 @@ function formatChatboxMessage (text: string, emotes: {[key: string]: string}) {
 const Emote = ({url}: {url: string}) => <surface {...styles.emote} backgroundImage={url}/>;
 const Badge = ({url}: {url: string}) => <surface {...styles.badge} backgroundImage={url}/>;
 const Username = ({color, name, rainbow}: any) => (
-  <surface {...styles.username(color)}>
+  <Link url={'http://www.twitch.tv/' + name} {...styles.username(color)}>
     {rainbow ? <RainbowText>{name + ':'}</RainbowText> : `${name}:`}
-  </surface>
+  </Link>
 );
 
 const pixelsForASpace = 5;
