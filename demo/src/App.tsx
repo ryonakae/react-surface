@@ -98,7 +98,7 @@ const styles = SurfaceStyleSheet.create({
     flexGrow: 1,
     backgroundColor: Color.rgb('#000000'),
     color: Color.rgb('#ffffff'),
-    fontSize: 14,
+    fontSize: grid.fontSize(0.30),
     fontFamily: fonts.Default
   },
 
