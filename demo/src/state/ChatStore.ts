@@ -30,8 +30,10 @@ export class ChatStore {
     const badgeUrls: {[key: string]: string} = {};
     for (const badgeName in references) {
       const badgeVersion = references[badgeName];
-      if (this.badges[badgeName]) {
-        badgeUrls[badgeName] = this.badges[badgeName].versions[badgeVersion].image_url_1x;
+      const versions = this.badges[badgeName] && this.badges[badgeName].versions;
+      if (versions) {
+        const version = versions[badgeVersion] || versions[Object.keys(versions)[0]];
+        badgeUrls[badgeName] = version.image_url_1x;
       }
     }
     return badgeUrls;
