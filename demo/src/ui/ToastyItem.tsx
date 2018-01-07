@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {Toasty, ToastyState, ToastyType} from '../state/Toasty';
-import {tweenSugar} from './UISettings';
+import {commonStyles, tweenSugar} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {Crossfader} from '../lib/Crossfader';
-import {commonColors, grid} from './UISettings';
+import {grid} from './UISettings';
 import {AppStateComponent} from '../AppStateComponent';
 import {autorun, action, observable, when} from 'mobx';
 import {TweenOptions} from '../../../src/lib/tween/TweenOptions';
@@ -93,6 +93,7 @@ export class ToastyItem extends AppStateComponent<{
       case ToastyState.Logging:
         x.to(0);
         y.to(this.props.index * (defaultToastyHeight + toastyPadding));
+        this.tweens.width.to(containerBounds.width);
         break;
       case ToastyState.Archived:
         y.to(y.value - toastySize.height);
@@ -135,13 +136,13 @@ const styles = {
   toasty: {
     position: 'absolute',
     right: 0,
+    ...commonStyles.blueBox,
     padding: toastyPadding,
     height: defaultToastyHeight,
     borderRadius: toastyPadding,
     justifyContent: 'center',
     alignItems: 'center',
     textAlign: 'center',
-    backgroundColor: commonColors.darkBlue,
     overflow: 'hidden'
   } as SurfaceStyle
 };

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {commonColors, grid} from './UISettings';
+import {commonStyles, grid} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {computed} from 'mobx';
 import {ChatMessage, ChatStore} from '../state/ChatStore';
@@ -105,9 +105,7 @@ const Username = ({color, name, rainbow}: any) => (
 const pixelsForASpace = 5;
 const styles = {
   chatbox: {
-    backgroundColor: commonColors.darkBlue,
-    dropShadowColor: commonColors.nightBlue,
-    dropShadowSize: grid.gutter / 2,
+    ...commonStyles.blueBox,
     padding: grid.gutter,
     borderRadius: grid.gutter / 2,
     justifyContent: 'flex-end',

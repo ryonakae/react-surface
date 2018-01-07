@@ -35,6 +35,13 @@ export const commonStyles = SurfaceStyleSheet.create({
     alignItems: 'center'
   },
 
+  blueBox: {
+    backgroundColor: commonColors.darkBlue,
+    dropShadowColor: commonColors.nightBlue,
+    dropShadowSize: grid.gutter / 2,
+    borderRadius: grid.gutter / 2
+  },
+
   label: {
     fontWeight: 'bold'
   }

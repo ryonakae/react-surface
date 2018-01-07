@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {SurfaceStyleSheet} from '../../../src/lib/SurfaceStyleSheet';
-import {commonColors, commonStyles, grid} from './UISettings';
+import {commonColors, commonStyles, grid, tweenSugar} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {duration} from 'moment';
 import {ToastyList} from './ToastyList';
@@ -35,7 +34,10 @@ export class Overlay extends AppStateComponent {
         <surface flexGrow={1} flexDirection="row">
           <surface mask={1} {...styles.window}/>
           <surface {...styles.widgets}>
-            <Chatbox style={styles.chatbox} chatStore={this.appState.chatbox}/>
+            <Chatbox
+              style={styles.chatbox(this.appState.toasties.loggedToasties.length)}
+              chatStore={this.appState.chatbox}
+            />
             <ToastyList style={styles.toasties}/>
           </surface>
         </surface>
@@ -72,14 +74,14 @@ const rightBounds = {
   marginLeft: commonPadding,
 };
 
-const styles = SurfaceStyleSheet.create({
+const styles = {
   background: {
     ...commonStyles.dock,
     backgroundColor: commonColors.darkBlue,
     backgroundImage: require('../assets/bg.jpg'),
     backgroundSize: 'cover',
     backgroundOpacity: 0.2,
-  },
+  } as SurfaceStyle,
 
   streamOverlay: {
     flexGrow: 1,
@@ -87,51 +89,51 @@ const styles = SurfaceStyleSheet.create({
     paddingRight: grid.paddingRight,
     paddingBottom: grid.paddingBottom,
     paddingLeft: grid.paddingLeft
-  },
+  } as SurfaceStyle,
 
   header: {
     flexDirection: 'row',
     height: grid.ySpan(1),
     fontSize: grid.fontSize(0.5),
     marginBottom: grid.gutter,
-  },
+  } as SurfaceStyle,
 
   title: {
     flexGrow: 1,
     justifyContent: 'center',
     overflow: 'hidden'
-  },
+  } as SurfaceStyle,
 
   nowPlaying: {
     alignItems: 'flex-end',
-  },
+  } as SurfaceStyle,
 
   stats: {
     ...rightBounds,
     flexDirection: 'row',
     justifyContent: 'flex-end'
-  },
+  } as SurfaceStyle,
 
   statsItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     width: '50%'
-  },
+  } as SurfaceStyle,
 
   viewersIcon: {
     marginLeft: grid.gutter / 2,
     width: grid.ySpan(0.5),
     height: grid.ySpan(0.5),
     backgroundImage: require('../assets/viewers.png')
-  },
+  } as SurfaceStyle,
 
   timeIcon: {
     marginLeft: grid.gutter / 2,
     width: grid.ySpan(0.5),
     height: grid.ySpan(0.5),
     backgroundImage: require('../assets/clock.png')
-  },
+  } as SurfaceStyle,
 
   window: {
     flexGrow: 1,
@@ -140,21 +142,24 @@ const styles = SurfaceStyleSheet.create({
     dropShadowColor: commonColors.black,
     dropShadowSize: grid.gutter / 2,
     backgroundColor: commonColors.lightBlue.alpha(0)
-  },
+  } as SurfaceStyle,
 
   widgets: {
     ...rightBounds,
     justifyContent: 'flex-end'
-  },
+  } as SurfaceStyle,
 
   toasties: {
     position: 'absolute',
     top: 0, right: 0,
     width: rightBounds.width,
     height: toastyBoxHeight
-  },
+  } as SurfaceStyle,
 
-  chatbox: {
-    height: grid.ySpan(15) - toastyBoxHeight
+  chatbox (logSize: number) {
+    return {
+      ...commonStyles.dock,
+      top: tweenSugar.slide.to(logSize * (defaultToastyHeight + toastySpacing)),
+    };
   }
-});
+};
