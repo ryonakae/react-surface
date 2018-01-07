@@ -13,6 +13,8 @@ import {commonColors} from './constants';
 
 const yoga = require('yoga-layout');
 
+const defaultTextStyle = new PIXI.TextStyle({});
+
 export class Surface {
   private mutableChildren: Surface[] = [];
   private surfaceMaskBoundsHash: string;
@@ -95,9 +97,7 @@ export class Surface {
     const textStyle = {};
     for (const key in this.textStyleGetters) {
       const value = (this.textStyleGetters as any)[key]();
-      if (value !== undefined) {
-        (textStyle as any)[key] = value;
-      }
+      (textStyle as any)[key] = value !== undefined ? value : (defaultTextStyle as any)[key];
     }
     return textStyle;
   }
