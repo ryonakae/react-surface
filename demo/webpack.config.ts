@@ -104,7 +104,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
     ]),
     devServer: {
       hot: options.hmr,
-      hotOnly: true
+      hotOnly: options.hmr
     },
   };
 
