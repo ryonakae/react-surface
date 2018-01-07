@@ -2,7 +2,12 @@ import * as React from 'react';
 import {Interactive} from './Interactive';
 import * as Color from 'color';
 
-export const Link = ({children, url, ...rest}: any) => (
+type LinkProps = {
+  url: string
+  children: SurfaceProps['children']
+};
+
+export const Link = ({children, url, ...rest}: LinkProps) => (
   <Interactive style={styles.link} onClick={() => window.open(url, '_blank')} {...rest}>
     {children}
   </Interactive>
