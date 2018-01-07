@@ -11,8 +11,8 @@ const emptyBounds = {
 };
 
 export const maxToastyLogSize = 3;
-const presentationCooldown = 5000;
-const infoToastyInterval = 60 * 5 * 1000;
+const toastyCooldown = 5000;
+const infoToastyCooldown = 60 * 5 * 1000;
 const toastyTimes: {[key: string]: number} = {
   [ToastyState.Exclaiming]: 1500,
   [ToastyState.Presenting]: 6000
@@ -27,7 +27,6 @@ export class ToastyStore {
   @observable toasties: Toasty[] = [];
   @observable containerBounds: Bounds = emptyBounds;
   @observable overlaySize: Size = {width: 0, height: 0};
-  @observable currentTime: number = 0;
 
   @computed get visibleToasties () {
     return this.toasties
@@ -41,19 +40,9 @@ export class ToastyStore {
       .sort(Toasty.compareAge);
   }
 
-  @computed get presentation () {
-    return this.toasties.find((toasty) =>
-      toasty.state > ToastyState.Idle && toasty.state <= ToastyState.Presenting
-    );
-  }
-
   @action
   addToasty (toasty: Toasty) {
     this.toasties.push(toasty);
-
-    if (!this.presentation) {
-      this.presentNextToasty();
-    }
   }
 
   @action
@@ -66,73 +55,71 @@ export class ToastyStore {
     this.overlaySize = size;
   }
 
-  @action
-  updateTime () {
-    this.currentTime = new Date().getTime();
+  setInfoToastyContent (content: any[]) {
+    this.infoToastyContent = content;
   }
 
-  presentNextToasty () {
-    const nextToasty = this.toasties
-      .filter((toasty) => toasty.state === ToastyState.Idle)
+  addNextInfoToasty () {
+    this.nextInfoToastyIndex = (this.nextInfoToastyIndex + 1) % this.infoToastyContent.length;
+    const toasty = new InfoToasty(this.infoToastyContent[this.nextInfoToastyIndex]);
+    this.addToasty(toasty);
+
+    when(
+      () => toasty.state === ToastyState.Archived,
+      () => {
+        if (this.isRunning) {
+          setTimeout(() => this.addNextInfoToasty(), infoToastyCooldown);
+        }
+      }
+    );
+  }
+
+  private findToasty (from: ToastyState, to: ToastyState = from) {
+    return this.toasties
+      .filter((toasty) => toasty.state >= from && toasty.state <= to)
       .sort(Toasty.compareAge)[0];
-
-    if (nextToasty) {
-      this.progress(nextToasty);
-    }
   }
 
-  progress (toasty: Toasty, to: ToastyState = toasty.state + 1) {
+  private progressToasty (toasty: Toasty, to: ToastyState = toasty.state + 1) {
     toasty.progress(to);
 
     if (toasty.state < ToastyState.Logging) {
       clearTimeout(this.toastyTimeoutIds[toasty.id]);
       const nextMode = toasty.state + 1;
       this.toastyTimeoutIds[toasty.id] = setTimeout(
-        () => this.progress(toasty, nextMode),
+        () => this.progressToasty(toasty, nextMode),
         toastyTimes[toasty.state] || 0
       );
     }
   }
 
-  setInfoToastyContent (content: any[]) {
-    this.infoToastyContent = content;
-  }
+  private acceptNextToasty () {
+    const pres = () => this.findToasty(ToastyState.Exclaiming, ToastyState.Presenting);
+    const idle = () => this.findToasty(ToastyState.Idle);
 
-  pullNextInfoToasty () {
-    this.nextInfoToastyIndex = (this.nextInfoToastyIndex + 1) % this.infoToastyContent.length;
-    return new InfoToasty(this.infoToastyContent[this.nextInfoToastyIndex]);
-  }
-
-  addNextInfoToasty () {
-    const toasty = this.pullNextInfoToasty();
-    this.addToasty(toasty);
-
-    if (this.isRunning) {
-      when(
-        () => toasty.state === ToastyState.Archived,
-        () => setTimeout(() => this.addNextInfoToasty(), infoToastyInterval)
-      );
-    }
+    when(
+      () => !pres() && !!idle(),
+      () => {
+        if (this.isRunning) {
+          const toasty = idle();
+          this.progressToasty(toasty);
+          when(
+            () => toasty.state > ToastyState.Presenting,
+            () => setTimeout(() => this.acceptNextToasty(), toastyCooldown)
+          );
+        }
+      }
+    );
   }
 
   initializeBehavior () {
     this.isRunning = true;
+
+    this.acceptNextToasty();
     this.addNextInfoToasty();
 
-    // Update time every second
-    const currentTimeIntervalId = setInterval(() => this.updateTime(), 1000);
     return [
-      () => {
-        clearInterval(currentTimeIntervalId);
-        this.isRunning = false;
-      },
-
-      // Present the next toasty as soon as the current is done
-      reaction(() => this.presentation, (pres) => {
-        if (!pres) {
-          setTimeout(() => this.presentNextToasty(), presentationCooldown);
-        }
-      }),
+      () => this.isRunning = false,
 
       // Archive toasties when log is full
       reaction(
