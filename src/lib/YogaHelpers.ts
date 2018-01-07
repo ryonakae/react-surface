@@ -106,7 +106,12 @@ const mixedYogaValueTransformers: {[key: string]: YogaValueTransformerFn | YogaV
   }
 };
 
+const transformerCache: any = {};
 function getYogaValueTransformer (propertyName: string) {
+  if (transformerCache.hasOwnProperty(propertyName)) {
+    return transformerCache[propertyName];
+  }
+
   const mix = {
     propertyName,
     transform: (value: any) => value,
@@ -120,6 +125,7 @@ function getYogaValueTransformer (propertyName: string) {
     Object.assign(mix, transformer);
   }
 
+  transformerCache[propertyName] = mix;
   return mix;
 }
 
