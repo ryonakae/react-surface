@@ -1,26 +1,28 @@
 import {interaction} from 'pixi.js';
 
 type SurfaceEventInfo = {
-  pixiName: any;
+  pixiNames: string[];
   isInteractive: boolean;
 };
 
 // HACK needs to match event types in global.d.ts
 export const surfaceEvents: {[key: string]: SurfaceEventInfo} = {
-  onClick: {pixiName: 'click', isInteractive: true},
-  onRightClick: {pixiName: 'rightclick', isInteractive: true},
-  onMouseDown: {pixiName: 'mousedown', isInteractive: true},
-  onMouseUp: {pixiName: 'mouseup', isInteractive: true},
-  onMouseEnter: {pixiName: 'mouseover', isInteractive: true},
-  onMouseLeave: {pixiName: 'mouseout', isInteractive: true},
-  onSizeChanged: {pixiName: 'bogusEvent_size', isInteractive: false},
-  onBoundsChanged: {pixiName: 'bogusEvent_bounds', isInteractive: false}
+  onClick: {pixiNames: ['click', 'touchend'], isInteractive: true},
+  onRightClick: {pixiNames: ['rightclick'], isInteractive: true},
+  onMouseDown: {pixiNames: ['mousedown', 'touchstart'], isInteractive: true},
+  onMouseUp: {pixiNames: ['mouseup', 'touchend'], isInteractive: true},
+  onMouseEnter: {pixiNames: ['mouseover', 'touchstart'], isInteractive: true},
+  onMouseLeave: {pixiNames: ['mouseout', 'touchend'], isInteractive: true},
+  onSizeChanged: {pixiNames: ['bogusEvent_size'], isInteractive: false},
+  onBoundsChanged: {pixiNames: ['bogusEvent_bounds'], isInteractive: false}
 };
 
 export const pixiEvents: {[key: string]: SurfaceEventInfo} = {};
 for (const surfaceEventName in surfaceEvents) {
   const info = surfaceEvents[surfaceEventName];
-  pixiEvents[info.pixiName] = info;
+  for (const pixiName of info.pixiNames) {
+    pixiEvents[pixiName] = info;
+  }
 }
 
 export function diffEventProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {

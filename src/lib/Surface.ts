@@ -484,15 +484,21 @@ export class Surface {
   }
 
   protected addEventListener (name: string, handler: (e: interaction.InteractionEvent) => any) {
-    this.pixiContainer.addListener(surfaceEvents[name].pixiName, handler);
+    for (const pixiName of surfaceEvents[name].pixiNames) {
+      this.pixiContainer.addListener(pixiName as any, handler);
+    }
   }
 
   protected removeEventListener (name: string, handler: (e: interaction.InteractionEvent) => any) {
-    this.pixiContainer.removeListener(surfaceEvents[name].pixiName, handler);
+    for (const pixiName of surfaceEvents[name].pixiNames) {
+      this.pixiContainer.removeListener(pixiName as any, handler);
+    }
   }
 
   emitEvent (name: string, ...args: any[]) {
-    this.pixiContainer.emit(surfaceEvents[name].pixiName, ...args);
+    for (const pixiName of surfaceEvents[name].pixiNames) {
+      this.pixiContainer.emit(pixiName, ...args);
+    }
   }
 }
 
