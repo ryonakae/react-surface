@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {interaction} from 'pixi.js';
 import {observer} from 'mobx-react/custom';
 import {observable, action} from 'mobx';
 
