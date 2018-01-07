@@ -246,7 +246,7 @@ export class Surface {
     }
   }
 
-  cascadeOffset (x: number = 0, y: number = 0) {
+  cascadeGlobalPosition (x: number = 0, y: number = 0) {
     const {left, top} = this.yogaNode.getComputedLayout();
     this.globalPosition = {
       x: x + left,
@@ -254,7 +254,7 @@ export class Surface {
     };
 
     for (const child of this.children) {
-      child.cascadeOffset(this.globalPosition.x, this.globalPosition.y);
+      child.cascadeGlobalPosition(this.globalPosition.x, this.globalPosition.y);
     }
   }
 
@@ -578,7 +578,7 @@ export class SurfaceRoot extends Surface {
       yoga.DIRECTION_LTR
     );
 
-    this.cascadeOffset();
+    this.cascadeGlobalPosition();
 
     const queue: Surface[] = [this];
     while (queue.length) {
