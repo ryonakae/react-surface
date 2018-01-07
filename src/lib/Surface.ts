@@ -22,6 +22,7 @@ export class Surface {
   private surfaceMaskId: SurfaceMaskId;
 
   public pixiContainer: Container;
+  private globalPosition: Point = {x: 0, y: 0};
   private lastFrameBounds: Bounds;
   private dropShadowFilter: DropShadowFilter;
   private backgroundColor?: SurfaceBackground;
@@ -61,7 +62,7 @@ export class Surface {
     }
 
     this.pixiContainer.name = type!;
-    this.lastFrameBounds = this.pixiContainer.getBounds();
+    this.lastFrameBounds = this.getGlobalBounds();
   }
 
   destroy () {
@@ -110,6 +111,20 @@ export class Surface {
             {value: (this.props as any)[key]};
       }
     });
+  }
+
+  getGlobalBounds () {
+    let {width, height} = this.yogaNode.getComputedLayout();
+    width = width || 0;
+    height = height || 0;
+    return {
+      width,
+      height,
+      left: this.globalPosition.x,
+      top: this.globalPosition.y,
+      right: this.globalPosition.x + width,
+      bottom: this.globalPosition.y + height
+    };
   }
 
   measureText (width: number) {
@@ -228,6 +243,18 @@ export class Surface {
     }
     for (const child of this.children) {
       child.cascadeTextStyleGetters();
+    }
+  }
+
+  cascadeOffset (x: number = 0, y: number = 0) {
+    const {left, top} = this.yogaNode.getComputedLayout();
+    this.globalPosition = {
+      x: x + left,
+      y: y + top
+    };
+
+    for (const child of this.children) {
+      child.cascadeOffset(this.globalPosition.x, this.globalPosition.y);
     }
   }
 
@@ -373,7 +400,7 @@ export class Surface {
   }
 
   pollBoundsChanges () {
-    const bounds = this.pixiContainer.getBounds();
+    const bounds = this.getGlobalBounds();
 
     const sizeChanged = bounds.width !== this.lastFrameBounds.width || bounds.height !== this.lastFrameBounds.height;
     const positionChanged = bounds.left !== this.lastFrameBounds.left || bounds.top !== this.lastFrameBounds.top;
@@ -385,7 +412,7 @@ export class Surface {
       this.emitEvent('onBoundsChanged', bounds);
     }
 
-    this.lastFrameBounds = bounds.clone();
+    this.lastFrameBounds = bounds;
 
     return {
       size: sizeChanged,
@@ -401,8 +428,8 @@ export class Surface {
     const surfaceMask = this.root.surfaceMasks.get(this.props.maskedBy!);
 
     if (surfaceMask) {
-      const targetBounds = this.pixiContainer.getBounds();
-      const maskBounds = surfaceMask.pixiContainer.getBounds();
+      const targetBounds = this.getGlobalBounds();
+      const maskBounds = surfaceMask.getGlobalBounds();
       const surfaceMaskBoundsHash = JSON.stringify([targetBounds, maskBounds]);
 
       const didBoundsChange = surfaceMaskBoundsHash !== this.surfaceMaskBoundsHash;
@@ -550,6 +577,8 @@ export class SurfaceRoot extends Surface {
       this.app.view.height,
       yoga.DIRECTION_LTR
     );
+
+    this.cascadeOffset();
 
     const queue: Surface[] = [this];
     while (queue.length) {
