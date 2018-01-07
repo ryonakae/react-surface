@@ -21,7 +21,7 @@ document.body.appendChild(domNode);
 
 const renderer = new SurfaceRenderer(domNode);
 state.surface = renderer.store;
-state.options.update(!options.live);
+state.options.setEnableDevTools(!options.live);
 
 const twitchClient = new TwitchClient({
   clientID: options.clientID,

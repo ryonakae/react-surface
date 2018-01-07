@@ -1,10 +1,16 @@
 import {observable, action} from 'mobx';
 
 export class OptionsStore {
-  @observable enableDevtools: boolean;
+  @observable enableDevTools: boolean;
+  @observable enableGridOverlay: boolean;
 
   @action
-  update (enableDevtools: boolean) {
-    this.enableDevtools = enableDevtools;
+  setEnableDevTools (devTools: boolean) {
+    this.enableDevTools = devTools;
+  }
+
+  @action
+  setEnableGridOverlay (gridOverlay: boolean) {
+    this.enableGridOverlay = gridOverlay;
   }
 }
