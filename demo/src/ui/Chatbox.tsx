@@ -80,11 +80,11 @@ function formatChatboxMessage (text: string, emotes: {[key: string]: string}) {
   const words = text.split(/\s+/);
   const formatted = words.map((word, i) => {
     if (/(https?:\/\/\S+)/.test(word)) {
-      return <Link key={i} url={word}>{word} </Link>;
+      return <Link key={i} url={word}>{word + ' '}</Link>;
     }
     const mention = /@(\w+)/.exec(word);
     if (mention) {
-      return <Link key={i} url={`https://twitch.tv/${mention[1]}`}>{word} </Link>;
+      return <Link key={i} url={`https://twitch.tv/${mention[1]}`}>{word + ' '}</Link>;
     }
     if (emotes.hasOwnProperty(word)) {
       return <Emote key={`emote_${word}_${i}`} url={emotes[word]}/>;
@@ -133,6 +133,7 @@ const styles = {
   emote: {
     width: 25,
     height: 28,
+    marginTop: -7,
     marginRight: pixelsForASpace
   },
 
