@@ -8,6 +8,8 @@ import {ToastyList} from './ToastyList';
 import {AppStateComponent} from '../AppStateComponent';
 import {Chatbox} from './Chatbox';
 import {StreamStore} from '../state/StreamStore';
+import {defaultToastyHeight, toastySpacing} from './ToastyItem';
+import {maxToastyLogSize} from '../state/ToastyStore';
 
 @observer
 export class Overlay extends AppStateComponent {
@@ -54,10 +56,10 @@ class StreamStats extends React.Component<{stream: StreamStore}> {
     return (
       <React.Fragment>
         <surface {...styles.statsItem}>
-          {this.props.stream.viewerCount} viewers
+          {this.props.stream.viewerCount} <surface {...styles.viewersIcon}/>
         </surface>
         <surface {...styles.statsItem}>
-          {uptimeString} uptime
+          {uptimeString} <surface {...styles.timeIcon}/>
         </surface>
       </React.Fragment>
     );
@@ -66,7 +68,7 @@ class StreamStats extends React.Component<{stream: StreamStore}> {
 
 const commonPadding = grid.gutter * 3;
 const rightBounds = {
-  width: grid.xSpan(2.5),
+  width: grid.xSpan(3),
   marginLeft: commonPadding,
 };
 
@@ -89,13 +91,14 @@ const styles = SurfaceStyleSheet.create({
 
   header: {
     flexDirection: 'row',
+    height: grid.ySpan(1),
+    fontSize: grid.fontSize(0.5),
     marginBottom: grid.gutter,
   },
 
   title: {
     flexGrow: 1,
-    fontSize: 16,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     overflow: 'hidden'
   },
 
@@ -111,10 +114,23 @@ const styles = SurfaceStyleSheet.create({
 
   statsItem: {
     flexDirection: 'row',
-    marginLeft: grid.gutter,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'flex-end',
-    minWidth: grid.xSpan(1)
+    width: '50%'
+  },
+
+  viewersIcon: {
+    marginLeft: grid.gutter / 2,
+    width: grid.ySpan(0.5),
+    height: grid.ySpan(0.5),
+    backgroundImage: require('../assets/viewers.png')
+  },
+
+  timeIcon: {
+    marginLeft: grid.gutter / 2,
+    width: grid.ySpan(0.5),
+    height: grid.ySpan(0.5),
+    backgroundImage: require('../assets/clock.png')
   },
 
   window: {
@@ -136,6 +152,6 @@ const styles = SurfaceStyleSheet.create({
   },
 
   chatbox: {
-    height: grid.ySpan(8)
+    height: grid.ySpan(15) - maxToastyLogSize * (defaultToastyHeight + toastySpacing)
   }
 });

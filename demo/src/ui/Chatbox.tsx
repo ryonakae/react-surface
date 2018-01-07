@@ -109,7 +109,6 @@ const styles = {
     dropShadowColor: commonColors.nightBlue,
     dropShadowSize: grid.gutter / 2,
     padding: grid.gutter,
-    marginTop: grid.gutter,
     borderRadius: grid.gutter / 2,
     justifyContent: 'flex-end',
     overflow: 'hidden'
