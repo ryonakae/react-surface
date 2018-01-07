@@ -11,7 +11,7 @@ export const Link = ({children, url, ...rest}: any) => (
 const styles = {
   link (isHovered: boolean, isActive: boolean) {
     return {
-      color: isHovered ? Color.rgb('#54f7ff') : undefined,
+      color: isHovered ? Color.rgb(isActive ? '#42acb4' : '#54f7ff') : undefined,
       fontWeight: 'bold'
     };
   }
