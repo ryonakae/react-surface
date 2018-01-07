@@ -3,7 +3,6 @@ import {SurfaceStyleSheet} from '../../../src/lib/SurfaceStyleSheet';
 import {commonColors, commonStyles, grid} from './UISettings';
 import {observer} from 'mobx-react/custom';
 import {duration} from 'moment';
-import * as Color from 'color';
 import {ToastyList} from './ToastyList';
 import {AppStateComponent} from '../AppStateComponent';
 import {Chatbox} from './Chatbox';
@@ -36,8 +35,8 @@ export class Overlay extends AppStateComponent {
         <surface flexGrow={1} flexDirection="row">
           <surface mask={1} {...styles.window}/>
           <surface {...styles.widgets}>
-            <ToastyList style={styles.toasties}/>
             <Chatbox style={styles.chatbox} chatStore={this.appState.chatbox}/>
+            <ToastyList style={styles.toasties}/>
           </surface>
         </surface>
       </surface>
@@ -67,6 +66,7 @@ class StreamStats extends React.Component<{stream: StreamStore}> {
 }
 
 const commonPadding = grid.gutter * 3;
+const toastyBoxHeight = maxToastyLogSize * (defaultToastyHeight + toastySpacing);
 const rightBounds = {
   width: grid.xSpan(3),
   marginLeft: commonPadding,
@@ -143,15 +143,18 @@ const styles = SurfaceStyleSheet.create({
   },
 
   widgets: {
-    ...rightBounds
+    ...rightBounds,
+    justifyContent: 'flex-end'
   },
 
   toasties: {
-    flexGrow: 1,
-    backgroundColor: Color.rgb('#3ba173'),
+    position: 'absolute',
+    top: 0, right: 0,
+    width: rightBounds.width,
+    height: toastyBoxHeight
   },
 
   chatbox: {
-    height: grid.ySpan(15) - maxToastyLogSize * (defaultToastyHeight + toastySpacing)
+    height: grid.ySpan(15) - toastyBoxHeight
   }
 });
