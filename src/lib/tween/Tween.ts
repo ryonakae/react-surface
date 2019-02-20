@@ -2,7 +2,7 @@ import {getArithmetic, defaultOptions} from './settings';
 import {TweenOptions} from './TweenOptions';
 import TweenInstruction, {TweenInstructionProps} from './TweenInstruction';
 import {TweenSugar} from './TweenSugar';
-const TWEEN = require('tween.js');
+const TWEEN = require('@tweenjs/tween.js');
 
 let idCounter = 0;
 

@@ -5,6 +5,7 @@
   "author": "Kasper Sandin",
   "repository": "https://github.com/ksandin/react-surface",
   "dependencies": {
+    "@tweenjs/tween.js": "^17.3.0",
     "bezier-easing": "2.0.3",
     "color": "2.0.1",
     "fbjs": "0.8.16",
@@ -21,7 +22,6 @@
     "react-hot-loader": "4.7.1",
     "react-reconciler": "0.10.0",
     "stats.js": "0.17.0",
-    "tween.js": "16.6.0",
     "webfontloader": "1.6.28",
     "yoga-layout": "1.8.0"
   },
@@ -35,7 +35,7 @@
     "@types/react": "16.8.4",
     "@types/react-dom": "^16.8.2",
     "@types/react-hot-loader": "4.1.0",
-    "@types/tween.js": "16.9.0",
+    "@types/tween.js": "17.2.0",
     "@types/webfontloader": "1.6.29",
     "@types/webpack": "3.8.1",
     "@types/webpack-env": "1.13.3",
