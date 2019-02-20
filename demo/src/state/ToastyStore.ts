@@ -109,7 +109,9 @@ export class ToastyStore {
             this.progress(payload.toasty);
           }
         },
-        true
+        {
+          fireImmediately: true
+        }
       ),
 
       // Archive toasties when log is full
@@ -126,7 +128,9 @@ export class ToastyStore {
               });
           }
         },
-        true
+        {
+          fireImmediately: true
+        }
       ),
 
       // Queue new toasties automatically
@@ -137,7 +141,9 @@ export class ToastyStore {
             this.spawnToasty();
           }
         },
-        true
+        {
+          fireImmediately: true
+        }
       )
     ];
   }

@@ -17,7 +17,7 @@ export class App extends React.Component<{state: AppState}> {
     };
   }
 
-  private behaviorDisposers: Array<() => void>;
+  private behaviorDisposers!: Array<() => void>;
 
   componentWillMount () {
     this.behaviorDisposers = this.props.state.initializeBehavior();

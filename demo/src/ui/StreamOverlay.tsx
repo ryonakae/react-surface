@@ -29,8 +29,6 @@ export class StreamOverlay extends React.Component {
   }
 }
 
-
-
 const commonPadding = grid.gutter * 3;
 const styles = SurfaceStyleSheet.create({
   streamOverlay: {

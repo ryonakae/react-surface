@@ -9,7 +9,6 @@
     "variable-name": [true, "check-format", "allow-pascal-case"],
     "no-var-self": false,
 
-    "no-unused-variable": [true, {"ignore-pattern": "React"}],
     "ter-arrow-parens": [true, "always"],
     "no-parameter-reassignment": false,
     "space-before-function-paren": [true, "always"],

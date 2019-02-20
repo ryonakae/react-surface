@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js';
 import {Application, Container, Text, TextMetrics, TextStyle, DisplayObject, interaction} from 'pixi.js';
 import {diffEventProps, pixiEvents, surfaceEvents} from './events';
 import {getYogaValueTransformer} from './YogaHelpers';
@@ -10,6 +11,20 @@ import {SurfaceStore} from './SurfaceStore';
 
 const yoga = require('yoga-layout');
 
+interface TSO extends PIXI.TextStyleOptions {
+  whiteSpace?: any;
+}
+
+interface TextStyleOptions extends TSO {
+  whiteSpace?: boolean;
+}
+
+interface TM extends PIXI.TextMetrics {
+  maxLineWidth?: number;
+  lines?: string[];
+  lineHeight?: number;
+}
+
 export class Surface {
   private mutableChildren: Surface[] = [];
 
@@ -18,14 +33,14 @@ export class Surface {
   private backgroundImage?: SurfaceImage;
   private border?: SurfaceBorder;
   private mask?: SurfaceBorder;
-  private childContainer: Container;
+  private childContainer!: Container;
   private pixiText?: Text;
   private layout?: YogaLayout;
   private textStyleGetters: GettableProps<PIXI.TextStyleOptions> = {};
   private tweens: TweenableProps<SurfaceProps> = {};
 
-  public id: number;
-  public isDestroyed: boolean;
+  public id!: number;
+  public isDestroyed!: boolean;
   public yogaNode: YogaNode;
   public parentNode?: Surface;
   public props: SurfaceProps = {};
@@ -42,7 +57,7 @@ export class Surface {
 
     if (type === 'text') {
       this.yogaNode.setMeasureFunc(this.measureText.bind(this));
-      this.pixiText = new PIXI.Text();
+      this.pixiText = new PIXI.Text('');
       this.pixiContainer = this.pixiText;
     } else {
       this.pixiContainer = container || new Container();
@@ -83,7 +98,7 @@ export class Surface {
     return this.pixiContainer;
   }
 
-  get cascadedTextStyle (): PIXI.TextStyleOptions {
+  get cascadedTextStyle (): TextStyleOptions {
     const textStyle = {};
     for (const key in this.textStyleGetters) {
       const value = (this.textStyleGetters as any)[key]();
@@ -105,10 +120,16 @@ export class Surface {
   }
 
   measureText () {
-    const measurement = TextMetrics.measureText(this.pixiText!.text, new TextStyle(this.cascadedTextStyle));
+    const measurement: TM = TextMetrics.measureText(this.pixiText!.text, new TextStyle(this.cascadedTextStyle));
+    let height;
+    if (measurement.lines && measurement.lineHeight) {
+      height = measurement.lines.length * measurement.lineHeight;
+    } else {
+      height = 0;
+    }
     return {
+      height,
       width: measurement.maxLineWidth,
-      height: measurement.lines.length * measurement.lineHeight
     };
   }
 
@@ -140,7 +161,9 @@ export class Surface {
     }
 
     this.pixiContainer.interactive = !!this.pixiContainer.eventNames()
-      .find((name) => pixiEvents[name].isInteractive);
+      .find((name): boolean => {
+        return pixiEvents[String(name)].isInteractive;
+      });
   }
 
   updateTweenableProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {
@@ -188,13 +211,13 @@ export class Surface {
     return {
       wordWrap: () => this.props.wordWrap,
       align: () => this.props.textAlign,
-      letterSpacing: () => this.tweenableProps.letterSpacing.value,
+      letterSpacing: () => this.tweenableProps.letterSpacing ? this.tweenableProps.letterSpacing.value : undefined,
       fontFamily: () => this.props.fontFamily,
-      fontSize: () => this.tweenableProps.fontSize.value,
+      fontSize: () => this.tweenableProps.fontSize ? this.tweenableProps.fontSize.value : undefined,
       fontStyle: () => this.props.fontStyle,
       fontWeight: () => this.props.fontWeight,
       fill: () => {
-        const color = this.tweenableProps.color.value;
+        const color = this.tweenableProps.color ? this.tweenableProps.color.value : undefined;
         return color && color.rgbNumber();
       },
     };
@@ -245,18 +268,20 @@ export class Surface {
       this.props.backgroundImage !== undefined,
       () => this.backgroundImage,
       (value) => this.backgroundImage = value,
-      () => new SurfaceImage(),
+      () => new SurfaceImage(PIXI.Texture.EMPTY),
       () => this.border || this.childContainer
     );
 
-    mount(
-      this.pixiContainer,
-      SurfaceBorder.getWidths(this.tweenableProps).find((w) => w > 0),
-      () => this.border,
-      (value) => this.border = value,
-      () => new SurfaceBorder(),
-      () => this.childContainer
-    );
+    if (this.tweenableProps) {
+      mount(
+        this.pixiContainer,
+        SurfaceBorder.getWidths(this.tweenableProps).find((w) => w > 0),
+        () => this.border,
+        (value) => this.border = value,
+        () => new SurfaceBorder(),
+        () => this.childContainer
+      );
+    }
 
     const needsMask = this.props.overflow === 'hidden' ||
       this.props.backgroundImage !== undefined ||
@@ -291,29 +316,43 @@ export class Surface {
 
     this.layout = layout;
 
-    this.pixiContainer.rotation = this.tweenableProps.rotation.value || 0;
-    this.pixiContainer.skew.set(
-      definedOr(this.tweenableProps.skewX.value, 0),
-      definedOr(this.tweenableProps.skewY.value, 0)
-    );
-    this.pixiContainer.scale.set(
-      definedOr(this.tweenableProps.scaleX.value, 1),
-      definedOr(this.tweenableProps.scaleY.value, 1)
-    );
-    this.pixiContainer.pivot.set(
-      definedOr(this.tweenableProps.pivotX.value, layout.width / 2),
-      definedOr(this.tweenableProps.pivotY.value, layout.height / 2)
-    );
-    this.pixiContainer.position.set(
-      layout.left + definedOr(this.tweenableProps.translateX.value, 0) + this.pixiContainer.pivot.x,
-      layout.top + definedOr(this.tweenableProps.translateY.value, 0) + this.pixiContainer.pivot.y
-    );
+    if (this.tweenableProps.rotation) {
+      this.pixiContainer.rotation = this.tweenableProps.rotation.value || 0;
+
+      if (this.tweenableProps.skewX && this.tweenableProps.skewY) {
+        this.pixiContainer.skew.set(
+          definedOr(this.tweenableProps.skewX.value, 0),
+          definedOr(this.tweenableProps.skewY.value, 0)
+        );
+      }
+
+      if (this.tweenableProps.scaleX && this.tweenableProps.scaleY) {
+        this.pixiContainer.scale.set(
+          definedOr(this.tweenableProps.scaleX.value, 1),
+          definedOr(this.tweenableProps.scaleY.value, 1)
+        );
+      }
+
+      if (this.tweenableProps.pivotX && this.tweenableProps.pivotY) {
+        this.pixiContainer.pivot.set(
+          definedOr(this.tweenableProps.pivotX.value, layout.width / 2),
+          definedOr(this.tweenableProps.pivotY.value, layout.height / 2)
+        );
+      }
+
+      if (this.tweenableProps.translateX && this.tweenableProps.translateY) {
+        this.pixiContainer.position.set(
+          layout.left + definedOr(this.tweenableProps.translateX.value, 0) + this.pixiContainer.pivot.x,
+          layout.top + definedOr(this.tweenableProps.translateY.value, 0) + this.pixiContainer.pivot.y
+        );
+      }
+    }
 
     if (this.pixiText) {
       Object.assign(this.pixiText.style, this.cascadedTextStyle);
     }
 
-    if (this.backgroundColor) {
+    if (this.backgroundColor && this.tweenableProps.backgroundColor) {
       this.backgroundColor.color = this.tweenableProps.backgroundColor.value;
       this.backgroundColor.scale.set(layout.width, layout.height);
       this.backgroundColor.mask = this.mask!;
@@ -323,14 +362,11 @@ export class Surface {
       this.backgroundImage.update(layout, this.tweenableProps);
       this.backgroundImage.mask = this.mask!;
 
-      // TODO centralized loader
-      if (this.backgroundImage.texture.baseTexture.isLoading) {
-        this.backgroundImage.texture.baseTexture.on('loaded', () => {
-          if (!this.isDestroyed) {
-            this.updatePixi();
-          }
-        });
-      }
+      this.backgroundImage.texture.baseTexture.on('loaded', () => {
+        if (!this.isDestroyed) {
+          this.updatePixi();
+        }
+      });
     }
 
     if (this.mask) {
@@ -342,7 +378,9 @@ export class Surface {
     }
 
     this.pixiContainer.mask = (this.props.overflow === 'hidden' ? this.mask : undefined) as any;
-    this.pixiContainer.alpha = definedOr(this.tweenableProps.opacity.value, 1);
+    if (this.tweenableProps.opacity) {
+      this.pixiContainer.alpha = definedOr(this.tweenableProps.opacity.value, 1);
+    }
   }
 
   appendChild (child: Surface) {
@@ -416,7 +454,9 @@ export class SurfaceRoot extends Surface {
   surfacesWithTweens: Map<number, Surface>;
 
   constructor (target: HTMLElement, store: SurfaceStore) {
-    const app = new Application(target.clientWidth, target.clientHeight, {
+    const app = new Application({
+      width: target.clientWidth,
+      height: target.clientHeight,
       transparent: true,
       antialias: true
     });

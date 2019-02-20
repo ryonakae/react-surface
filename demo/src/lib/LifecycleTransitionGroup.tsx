@@ -23,7 +23,7 @@ type Props = {
 @observer
 export class LifecycleTransitionGroup extends React.Component<Props> {
   @observable transitions = new Map<string, Transition>();
-  private shouldSyncOnUpdate: boolean;
+  private shouldSyncOnUpdate!: boolean;
 
   componentWillMount () {
     this.syncTransitionChildren(this.props.children);
@@ -122,8 +122,8 @@ class Transition {
   key: any;
   state: TransitionState = TransitionState.NotMounted;
   instance?: Instance;
-  @observable element: React.ReactElement<any>;
-  @observable expired: boolean;
+  @observable element!: React.ReactElement<any>;
+  @observable expired!: boolean;
 
   get canEnter () {
     return this.state !== TransitionState.Entering && this.state !== TransitionState.Entered;

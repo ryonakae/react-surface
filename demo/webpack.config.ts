@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as webpack from 'webpack';
-import {HotModuleReplacementPlugin, LoaderOptionsPlugin, NamedModulesPlugin, NewModule} from 'webpack';
+import {HotModuleReplacementPlugin, LoaderOptionsPlugin, NamedModulesPlugin} from 'webpack';
 import {BuildOptions} from './BuildOptions';
 import {without} from 'lodash';
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -20,6 +20,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
   const sourceFolder = path.resolve(__dirname, 'src');
 
   const config: webpack.Configuration = {
+    mode: process.env.NODE_ENV !== 'production' ? 'development' : 'production',
     // What code to build and where to put it
     entry: compact<string>([
       path.join(sourceFolder, 'polyfills', 'index.ts'),
@@ -69,6 +70,18 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
         {test: /\.(json|svg|png|jpe?g)$/, use: 'file-loader'}
       ]
     },
+    optimization: {
+      splitChunks: {
+        cacheGroups: {
+          common: {
+            test: /node_modules/,
+            name: 'common',
+            chunks: 'initial',
+            enforce: true
+          }
+        }
+      }
+    },
     plugins: compact([
       new HtmlWebpackPlugin({filename: 'index.html', title: 'Surface Demo'}),
 
@@ -79,12 +92,6 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
       }),
 
       new ExtractTextPlugin('styles.css'),
-
-      new webpack.optimize.CommonsChunkPlugin({
-        name: 'common',
-        filename: 'common.js',
-        minChunks: (module: any) => module.context && module.context.indexOf('node_modules') >= 0
-      }),
 
       options.vendor && new AutoDllPlugin({
         inject: true,
@@ -105,13 +112,8 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
     devServer: {
       hot: options.hmr,
       hotOnly: true
-    },
+    }
   };
-
-  // Loaders should only be applied to project sources
-  for (const rule of (config.module as NewModule).rules) {
-    rule.exclude = /node_modules/;
-  }
 
   return config;
 }

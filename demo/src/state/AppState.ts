@@ -3,7 +3,7 @@ import {SurfaceStore} from '../../../src/lib/SurfaceStore';
 
 export class AppState {
   toasties = new ToastyStore();
-  surface: SurfaceStore;
+  surface!: SurfaceStore;
 
   initializeBehavior () {
     return this.toasties.initializeBehavior();

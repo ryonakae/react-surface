@@ -24,8 +24,10 @@ export class SurfaceBackground extends Graphics {
 
 export class SurfaceImage extends Sprite {
   update (containerSize: Size, props: TweenableProps<SurfaceProps>) {
+    if (!props.backgroundImage || !props.backgroundOpacity || !props.backgroundPosition || !props.backgroundSize) return;
+
     if (props.backgroundImage.value) {
-      this.texture = PIXI.Texture.fromImage(props.backgroundImage.value);
+      this.texture = PIXI.Texture.from(props.backgroundImage.value);
     }
 
     this.alpha = definedOr(props.backgroundOpacity.value, 1);
@@ -99,7 +101,9 @@ export class SurfaceImage extends Sprite {
 }
 
 export class SurfaceBorder extends Graphics {
-  static getWidths (props: TweenableProps<SurfaceProps>) {
+  static getWidths (props: TweenableProps<SurfaceProps>): any[] {
+    if (!props.border || !props.borderTop || !props.borderRight || !props.borderBottom || !props.borderLeft) return [];
+
     const borderAll = definedOr(props.border.value, 0);
     return [
       definedOr(props.borderTop.value, borderAll),
@@ -110,6 +114,15 @@ export class SurfaceBorder extends Graphics {
   }
 
   update (size: Size, props: TweenableProps<SurfaceProps>) {
+    if (
+      !props.borderColor ||
+      !props.borderColorTop ||
+      !props.borderColorRight ||
+      !props.borderColorBottom ||
+      !props.borderColorLeft ||
+      !props.borderRadius
+    ) return;
+
     const borderWidths = SurfaceBorder.getWidths(props);
     const borderColorAll = definedOr(props.borderColor.value, commonColors.transparent);
     const borderColors = [
@@ -119,7 +132,7 @@ export class SurfaceBorder extends Graphics {
       definedOr(props.borderColorLeft.value, borderColorAll)
     ];
 
-    if (props.borderRadius.value > 0) {
+    if (props.borderRadius.value > 0 && borderWidths) {
       const firstWidth = borderWidths.find((w) => w > 0) || 0;
       const firstColor = borderColors.find((c) => c !== undefined);
       this.drawRadius(size, firstWidth, firstColor, props.borderRadius.value);
@@ -128,7 +141,7 @@ export class SurfaceBorder extends Graphics {
     }
   }
 
-  drawSquare (size: Size, widths: number[], colors: IColor[]) {
+  drawSquare (size: Size, widths: any[] | undefined, colors: IColor[]) {
     this.clear();
 
     // Fill (for masking)
@@ -137,24 +150,32 @@ export class SurfaceBorder extends Graphics {
     this.endFill();
 
     // Top
-    this.beginFill(colors[0].rgbNumber(), colors[0].alpha());
-    this.drawRect(0, 0, size.width, widths[0]);
-    this.endFill();
+    if (widths) {
+      this.beginFill(colors[0].rgbNumber(), colors[0].alpha());
+      this.drawRect(0, 0, size.width, widths[0]);
+      this.endFill();
+    }
 
     // Right
-    this.beginFill(colors[1].rgbNumber(), colors[1].alpha());
-    this.drawRect(size.width - widths[1], widths[0], widths[1], size.height - widths[0] - widths[2]);
-    this.endFill();
+    if (widths) {
+      this.beginFill(colors[1].rgbNumber(), colors[1].alpha());
+      this.drawRect(size.width - widths[1], widths[0], widths[1], size.height - widths[0] - widths[2]);
+      this.endFill();
+    }
 
     // Bottom
-    this.beginFill(colors[2].rgbNumber(), colors[2].alpha());
-    this.drawRect(0, size.height - widths[2], size.width, widths[2]);
-    this.endFill();
+    if (widths) {
+      this.beginFill(colors[2].rgbNumber(), colors[2].alpha());
+      this.drawRect(0, size.height - widths[2], size.width, widths[2]);
+      this.endFill();
+    }
 
     // Right
-    this.beginFill(colors[3].rgbNumber(), colors[3].alpha());
-    this.drawRect(0, widths[0], widths[1], size.height - widths[0] - widths[2]);
-    this.endFill();
+    if (widths) {
+      this.beginFill(colors[3].rgbNumber(), colors[3].alpha());
+      this.drawRect(0, widths[0], widths[1], size.height - widths[0] - widths[2]);
+      this.endFill();
+    }
   }
 
   drawRadius (size: Size, width: number, color: IColor, radius: number) {

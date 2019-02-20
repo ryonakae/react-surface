@@ -2,8 +2,8 @@ import {TweenOptions} from './TweenOptions';
 import {getArithmetic} from './settings';
 
 export class TweenInstructionProps<TValue> {
-  from: TValue;
-  to: TValue;
+  from!: TValue;
+  to!: TValue;
   speed?: TValue;
   options?: TweenOptions;
 

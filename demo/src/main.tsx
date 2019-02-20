@@ -5,11 +5,13 @@ import {fonts} from './assets/fonts';
 import {AppContainer as HotLoaderContainer} from 'react-hot-loader';
 import {App} from './App';
 import {SurfaceRenderer} from '../../src';
-import {useStrict} from 'mobx';
+import {configure} from 'mobx';
 import {AppState} from './state/AppState';
 
 // Initialize app state
-useStrict(true);
+configure({
+  enforceActions: true
+});
 const state = new AppState();
 const domNode = document.createElement('div');
 domNode.className = 'root';

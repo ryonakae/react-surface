@@ -12,7 +12,7 @@ export enum ToastyState {
 
 export class Toasty {
   id: number = idCounter += 1;
-  message: string;
+  message!: string;
   createdAt: Date = new Date();
   @observable state = ToastyState.Idle;
 

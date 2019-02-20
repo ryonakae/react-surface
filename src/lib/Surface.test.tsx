@@ -20,12 +20,12 @@ describe('Surface', () => {
 
   // Surfaces
 
-  it(`can create empty surface`, () => {
+  it('can create empty surface', () => {
     const surface = render(<surface/>);
     expect(surface.children.length).toBe(0);
   });
 
-  it(`can append surface`, () => {
+  it('can append surface', () => {
     const container = render(
       <surface>
         <surface/>
@@ -47,7 +47,7 @@ describe('Surface', () => {
     expect(secondAfter).not.toBe(firstBefore);
   });
 
-  it(`can insert surface`, () => {
+  it('can insert surface', () => {
     const surface = render(
       <surface>
         <surface key={1}/>
@@ -80,7 +80,7 @@ describe('Surface', () => {
     });
   });
 
-  it(`can update surface`, () => {
+  it('can update surface', () => {
     const afterProps = {width: 10, height: 10};
 
     const container = render(
@@ -103,7 +103,7 @@ describe('Surface', () => {
     expect(afterSurface.props).toEqual(afterProps);
   });
 
-  it(`can remove surface`, () => {
+  it('can remove surface', () => {
     const container = render(
       <surface>
         <surface key={1}/>
@@ -127,27 +127,27 @@ describe('Surface', () => {
 
   // Texts
 
-  it(`can render text`, () => {
+  it('can render text', () => {
     const container = render(<surface>Hello</surface>);
     expect(container.children[0].textValue).toEqual('Hello');
   });
 
-  it(`can update text`, () => {
+  it('can update text', () => {
     const container = render(<surface>Hello</surface>);
     render(<surface>Changed</surface>);
     expect(container.children[0].textValue).toEqual('Changed');
   });
 
   // Events
-  
-  it(`can add event handler`, () => {
+
+  it('can add event handler', () => {
     let triggered = false;
     const container = render(<surface onClick={() => triggered = true}/>);
     container.emitEvent('onClick');
     expect(triggered).toBe(true);
   });
 
-  it(`can update event handler`, () => {
+  it('can update event handler', () => {
     let first = false;
     let second = false;
     const container = render(<surface onClick={() => first = true}/>);
@@ -156,25 +156,25 @@ describe('Surface', () => {
     expect(first).toBe(false);
     expect(second).toBe(true);
   });
-  
-  it(`can remove event handler`, () => {
+
+  it('can remove event handler', () => {
     let triggered = false;
     const container = render(<surface onClick={() => triggered = true}/>);
     render(<surface/>);
     container.emitEvent('onClick');
     expect(triggered).toBe(false);
   });
-  
+
   // Sanity checking Yoga/Pixi integration
 
-  it(`can customize size of root surface`, () => {
+  it('can customize size of root surface', () => {
     const container = render(<surface {...{width: 150, height: 200}}/>);
     const layout = container.yogaNode.getComputedLayout();
     expect(layout.width).toBe(150);
     expect(layout.height).toBe(200);
   });
 
-  it(`can flex in row`, () => {
+  it('can flex in row', () => {
     const container = render(
       <surface {...{width: 100, height: 100, flexDirection: 'row'}}>
         <surface {...{flexGrow: 1}}/>
@@ -189,7 +189,7 @@ describe('Surface', () => {
     expect([rightLayout.width, rightLayout.height]).toEqual([50, 100]);
   });
 
-  it(`can flex in column`, () => {
+  it('can flex in column', () => {
     const container = render(
       <surface {...{width: 100, height: 100, flexDirection: 'column'}}>
         <surface {...{flexGrow: 1}}/>
@@ -204,7 +204,7 @@ describe('Surface', () => {
     expect([rightLayout.width, rightLayout.height]).toEqual([100, 50]);
   });
 
-  it(`can use absolute position`, () => {
+  it('can use absolute position', () => {
     const container = render(
       <surface {...{width: 100, height: 100}}>
         <surface {...{position: 'absolute', top: 10, right: 10, bottom: 10, left: 10}}/>

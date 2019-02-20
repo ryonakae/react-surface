@@ -7,7 +7,7 @@ export const appStateContext = {
 };
 
 export abstract class AppStateComponent<P = {}> extends React.Component<P> {
-  context: {state: AppState};
+  context!: {state: AppState};
   static contextTypes = appStateContext;
 
   get appState () {

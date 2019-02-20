@@ -45,37 +45,37 @@ function testArithmetic<TValue> (arithmetic: IArithmetic<TValue>) {
     expect(arithmetic.equals(a, b)).toBe(true)
   );
 
-  it(`can set tween value manually`, () => {
+  it('can set tween value manually', () => {
     const tween = new Tween(arithmetic.zero);
     tween.set(arithmetic.single);
     expectArithmeticEqual(tween.value, arithmetic.single);
   });
 
-  it(`can tween positively with duration`, async () => {
+  it('can tween positively with duration', async () => {
     const tween = new Tween(arithmetic.zero);
     const target = arithmetic.multiply(arithmetic.single, 25);
     await expectDuration(tween.to(target), tween.options.duration);
   });
 
-  it(`can tween positively with speed`, async () => {
+  it('can tween positively with speed', async () => {
     const tween = new Tween(arithmetic.zero);
     const target = arithmetic.multiply(arithmetic.single, 25);
     await expectDuration(tween.to(target, {speed: arithmetic.single}), 16 * 25);
   });
 
-  it(`can tween negatively with duration`, async () => {
+  it('can tween negatively with duration', async () => {
     const tween = new Tween(arithmetic.zero);
     const target = arithmetic.multiply(arithmetic.single, -25);
     await expectDuration(tween.to(target), tween.options.duration);
   });
 
-  it(`can tween negatively with speed`, async () => {
+  it('can tween negatively with speed', async () => {
     const tween = new Tween(arithmetic.zero);
     const target = arithmetic.multiply(arithmetic.single, -25);
     await expectDuration(tween.to(target, {speed: arithmetic.single}), 16 * 25);
   });
 
-  it(`toggle yields the correct end value`, async () => {
+  it('toggle yields the correct end value', async () => {
     const tween = new Tween(arithmetic.zero);
     const offValue = arithmetic.multiply(arithmetic.single, 5);
     const onValue = arithmetic.multiply(arithmetic.single, 10);
@@ -87,14 +87,14 @@ function testArithmetic<TValue> (arithmetic: IArithmetic<TValue>) {
     expectArithmeticEqual(endValue, offValue);
   });
 
-  it(`promise resolves with end value`, async () => {
+  it('promise resolves with end value', async () => {
     const tween = new Tween(arithmetic.zero);
     const target = arithmetic.multiply(arithmetic.single, 5);
     const endValue = await tween.to(target);
     expectArithmeticEqual(endValue, target);
   });
 
-  it(`can override instruction`, async () => {
+  it('can override instruction', async () => {
     const tween = new Tween(arithmetic.zero);
     const target1 = arithmetic.multiply(arithmetic.single, 5);
     const target2 = arithmetic.multiply(arithmetic.single, 10);
@@ -104,7 +104,7 @@ function testArithmetic<TValue> (arithmetic: IArithmetic<TValue>) {
     expectArithmeticEqual(tween.value, target2);
   });
 
-  it(`overridden instructions add to duration`, async () => {
+  it('overridden instructions add to duration', async () => {
     const tween = new Tween(arithmetic.zero);
     const target1 = arithmetic.multiply(arithmetic.single, 5);
     const target2 = arithmetic.multiply(arithmetic.single, 10);

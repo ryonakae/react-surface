@@ -15,11 +15,11 @@ export class Grid {
   }
 
   // Screen
-  
+
   get width () {
     return this.outerWidth - this.paddingLeft - this.paddingRight;
   }
-  
+
   get height () {
     return this.outerHeight - this.paddingTop - this.paddingBottom;
   }

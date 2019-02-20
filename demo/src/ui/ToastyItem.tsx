@@ -20,7 +20,7 @@ export class ToastyItem extends AppStateComponent<{
     width: tweenSugar.slide.tween(0)
   };
 
-  messageSize: Size;
+  messageSize!: Size;
 
   @computed get displayedContent () {
     if (this.props.toasty.state <= ToastyState.Exclaiming) {
@@ -119,5 +119,5 @@ function ellipsis (str: string, maxLength: number) {
   if (str.length <= maxLength) {
     return str;
   }
-  return str.substr(0, maxLength) + '...';
+  return `${str.substr(0, maxLength)}'...'`;
 }
