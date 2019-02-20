@@ -15,10 +15,10 @@ export class Tween<TValue> {
   lastInstruction: TweenInstruction<TValue>;
 
   constructor (
-    public value: TValue, 
+    public value: TValue,
     public options: TweenOptions = defaultOptions
   ) {}
-  
+
   // TODO make sure arithmetic isn't changed
   get arithmetic () {
     return getArithmetic(this.value);

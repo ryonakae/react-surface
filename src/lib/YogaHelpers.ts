@@ -33,7 +33,7 @@ const mixedYogaValueTransformers: {[key: string]: YogaValueTransformerFn | YogaV
   paddingRight: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_RIGHT, value]},
   paddingBottom: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_BOTTOM, value]},
   paddingLeft: {functionName: 'setPadding', transform: (value: number) => [yoga.EDGE_LEFT, value]},
-  
+
   position: {
     functionName: 'setPositionType',
     transform (value: string) {
@@ -41,7 +41,7 @@ const mixedYogaValueTransformers: {[key: string]: YogaValueTransformerFn | YogaV
         case 'relative': return [yoga.POSITION_TYPE_RELATIVE];
         case 'absolute': return [yoga.POSITION_TYPE_ABSOLUTE];
       }
-      throw new Error('Position not supported: ' + value);
+      throw new Error(`Position not supported: ${value}`);
     }
   },
 
@@ -113,7 +113,7 @@ export function getYogaValueTransformer (propertyName: string): YogaValueTransfo
 }
 
 export function getYogaNodeSetFunctionName (propertyName: string) {
-  return 'set' + propertyName[0].toUpperCase() + propertyName.substr(1);
+  return `set${propertyName[0].toUpperCase() + propertyName.substr(1)}`;
 }
 
 type ValueTaker = (name: string, fallbackValue: any) => any;

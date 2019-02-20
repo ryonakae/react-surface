@@ -140,7 +140,7 @@ export class Surface {
     }
 
     this.pixiContainer.interactive = !!this.pixiContainer.eventNames()
-      .find((name) => pixiEvents[name].isInteractive);
+      .find((name) => pixiEvents[String(name)].isInteractive);
   }
 
   updateTweenableProps (prevProps: SurfaceProps, nextProps: SurfaceProps) {
