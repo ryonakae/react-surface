@@ -61,8 +61,11 @@
     "webpack-dev-server": "3.1.14"
   },
   "scripts": {
-    "pre-commit": "lint",
-    "build": "webpack --config ./demo/webpack.config.ts --env.outputFolder ../dist",
+    "pre-commit": [
+      "lint",
+      "build"
+    ],
+    "build": "NODE_ENV=production webpack --config ./demo/webpack.config.ts --env.outputFolder ../dist",
     "dev-server": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.stats --env.debug --env.hmr --env.sourceMaps",
     "dev-server-fast": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.vendor --env.cache --env.hmr",
     "test": "jest",
