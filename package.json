@@ -4,6 +4,7 @@
   "description": "A custom react renderer utilizing facebook yoga targeting canvas/webgl",
   "author": "Kasper Sandin",
   "repository": "https://github.com/ksandin/react-surface",
+  "main": "lib/react-surface.js",
   "dependencies": {
     "@tweenjs/tween.js": "^17.3.0",
     "bezier-easing": "2.1.0",
@@ -66,7 +67,8 @@
       "lint",
       "test"
     ],
-    "build": "webpack --config ./demo/webpack.config.ts --env.outputFolder ../dist",
+    "build": "webpack --config ./webpack.config.ts",
+    "build-demo": "webpack --config ./demo/webpack.config.ts --env.outputFolder ./dist",
     "dev-server": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.stats --env.debug --env.hmr --env.sourceMaps",
     "dev-server-fast": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.vendor --env.cache --env.hmr",
     "test": "jest",
