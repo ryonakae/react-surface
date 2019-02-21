@@ -1,12 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as webpack from 'webpack';
-import {HotModuleReplacementPlugin, LoaderOptionsPlugin, NamedModulesPlugin, NewModule} from 'webpack';
+import {HotModuleReplacementPlugin, LoaderOptionsPlugin, NamedModulesPlugin} from 'webpack';
 import {BuildOptions} from './BuildOptions';
 import {without} from 'lodash';
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const AutoDllPlugin = require('autodll-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+// const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+const mode = process.env.NODE_ENV !== 'production' ? 'development' : 'production';
+const devMode = process.env.NODE_ENV !== 'production';
 
 // NOTE webpack requires a default export
 export default async function webpackConfig (additionalOptions?: BuildOptions)  { // tslint:disable-line
@@ -20,6 +24,8 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
   const sourceFolder = path.resolve(__dirname, 'src');
 
   const config: webpack.Configuration = {
+    mode,
+
     // What code to build and where to put it
     entry: compact<string>([
       path.join(sourceFolder, 'polyfills', 'index.ts'),
@@ -46,6 +52,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
       rules: [
         {
           test: /\.tsx?$/,
+          exclude: /node_modules/,
           use: compact([
             options.hmr && 'react-hot-loader/webpack',
             {
@@ -61,12 +68,17 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
         },
         {
           test: /\.css$/,
-          use: ExtractTextPlugin.extract({
-            fallback: 'style-loader',
-            use: 'css-loader'
-          })
+          exclude: /node_modules/,
+          use: [
+            devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+            'css-loader'
+          ]
         },
-        {test: /\.(json|svg|png|jpe?g)$/, use: 'file-loader'}
+        {
+          test: /\.(json|svg|png|jpe?g)$/,
+          exclude: /node_modules/,
+          use: 'file-loader'
+        }
       ]
     },
     plugins: compact([
@@ -78,13 +90,7 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
         }
       }),
 
-      new ExtractTextPlugin('styles.css'),
-
-      new webpack.optimize.CommonsChunkPlugin({
-        name: 'common',
-        filename: 'common.js',
-        minChunks: (module: any) => module.context && module.context.indexOf('node_modules') >= 0
-      }),
+      new MiniCssExtractPlugin('styles.css'),
 
       options.vendor && new AutoDllPlugin({
         inject: true,
@@ -102,16 +108,23 @@ export default async function webpackConfig (additionalOptions?: BuildOptions)  
       options.hmr && new HotModuleReplacementPlugin(),
       options.debug && new LoaderOptionsPlugin({debug: true}),
     ]),
+    optimization: {
+      splitChunks: {
+        cacheGroups: {
+          common: {
+            test: /node_modules/,
+            name: 'common',
+            chunks: 'initial',
+            enforce: true
+          }
+        }
+      }
+    },
     devServer: {
       hot: options.hmr,
       hotOnly: true
     },
   };
-
-  // Loaders should only be applied to project sources
-  for (const rule of (config.module as NewModule).rules) {
-    rule.exclude = /node_modules/;
-  }
 
   return config;
 }
