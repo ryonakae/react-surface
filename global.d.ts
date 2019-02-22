@@ -5,17 +5,17 @@ declare module JSX {
   }
 }
 
-type CSSProps = React.CSSProperties;
-type Percentage = string; // TODO can typescript enforce percentage strings?
-type SurfaceTweenInstruction = any;
-type SurfaceValue = number | SurfaceTweenInstruction;
-type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
-type SurfaceChild = React.ReactElement<SurfaceProps> | React.ReactNode;
-type SurfaceStyle = YogaProps & RenderProps;
-type SurfaceStyleDict = {[key: string]: SurfaceStyle};
+export type CSSProps = React.CSSProperties;
+export type Percentage = string; // TODO can typescript enforce percentage strings?
+export type SurfaceTweenInstruction = any;
+export type SurfaceValue = number | SurfaceTweenInstruction;
+export type SurfaceValueP = SurfaceValue | Percentage; // SurfaceValue with percentage support
+export type SurfaceChild = React.ReactElement<SurfaceProps> | React.ReactNode;
+export type SurfaceStyle = YogaProps & RenderProps;
+export type SurfaceStyleDict = {[key: string]: SurfaceStyle};
 
 // TODO use 'color' package
-type IColor = SurfaceTweenInstruction | {
+export type IColor = SurfaceTweenInstruction | {
   rgbNumber (): number;
   red (): number;
   green (): number;
@@ -23,17 +23,17 @@ type IColor = SurfaceTweenInstruction | {
   alpha (): number;
 };
 
-type Point = {
+export type Point = {
   x: number,
   y: number
 };
 
-type Size = {
+export type Size = {
   width: number,
   height: number
 };
 
-type YogaProps = {
+export type YogaProps = {
   position?: 'absolute' | 'relative',
   alignContent?: 'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'stretch';
   alignItems?: 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
@@ -78,7 +78,7 @@ type YogaProps = {
   opacity?: SurfaceValue;
 };
 
-type RenderProps = SurfaceTransform & {
+export type RenderProps = SurfaceTransform & {
   color?: IColor;
   textAlign?: 'start' | 'center' | 'end',
   wordWrap?: boolean;
@@ -103,7 +103,7 @@ type RenderProps = SurfaceTransform & {
   borderColorLeft?: IColor;
 };
 
-type SurfaceTransform = {
+export type SurfaceTransform = {
   translateX?: SurfaceValue,
   translateY?: SurfaceValue,
   scaleX?: SurfaceValue,
@@ -115,7 +115,7 @@ type SurfaceTransform = {
   pivotY?: SurfaceValue
 };
 
-type SurfaceEvents = {
+export type SurfaceEvents = {
   onClick?: (e: PIXI.interaction.InteractionEvent) => void;
   onRightClick?: (e: PIXI.interaction.InteractionEvent) => void;
   onMouseUp?: (e: PIXI.interaction.InteractionEvent) => void;
@@ -125,7 +125,7 @@ type SurfaceEvents = {
   onSizeChanged?: (size: Size) => void;
 };
 
-type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
+export type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
   // React internals
   key?: string | number;
   ref?: (surf: any) => void;
@@ -135,25 +135,25 @@ type SurfaceProps = SurfaceEvents & RenderProps & YogaProps & {
 
 // TODO replace types below with actual types from react-reconciler and yoga-layout when they are available
 
-type FiberNode = {
+export type FiberNode = {
   _debugID: number;
   stateNode: Element; // TODO generate dom node equivalents of all surfaces to enable dev tool highlights
   type: string;
 };
 
-type HostContext = {};
+export type HostContext = {};
 
-type ReactContainer<TContainerInfo> = {
+export type ReactContainer<TContainerInfo> = {
   containerInfo: TContainerInfo
 };
 
-type ReactReconciler<TRoot> = {
+export type ReactReconciler<TRoot> = {
   injectIntoDevTools (config: any): void;
   createContainer (root: TRoot): ReactContainer<TRoot>;
   updateContainer<P> (element: React.ReactElement<P>, container: ReactContainer<TRoot>): void;
 };
 
-type YogaLayout = {
+export type YogaLayout = {
   left: number,
   top: number,
   right: number,
@@ -162,7 +162,7 @@ type YogaLayout = {
   height: number
 };
 
-type YogaNode = {
+export type YogaNode = {
   reset (): void;
   getParent (): YogaNode;
   getChild (index: number): YogaNode;

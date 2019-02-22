@@ -1,5 +1,6 @@
 import {Surface} from './Surface';
 import {observable, computed, action} from 'mobx';
+import {FiberNode} from 'global';
 
 export class SurfaceStore {
   private idCounter = 0;

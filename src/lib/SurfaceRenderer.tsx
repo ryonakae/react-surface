@@ -2,6 +2,7 @@ import {ReactElement} from 'react';
 import {createSurfaceReconciler} from './SurfaceReconciler';
 import {SurfaceStore} from './SurfaceStore';
 import {Surface, SurfaceRoot} from './Surface';
+import {ReactContainer, ReactReconciler} from 'global';
 
 export class SurfaceRenderer {
   public readonly container: ReactContainer<SurfaceRoot>;

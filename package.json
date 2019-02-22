@@ -63,7 +63,7 @@
   "main": "./dist/index.js",
   "repository": "https://github.com/ksandin/react-surface",
   "scripts": {
-    "build": "tsc -p tsconfig-lib.json -outDir ./dist",
+    "build": "tsc -p tsconfig-lib.json -outDir ./dist -d",
     "build-demo": "webpack --config ./demo/webpack.config.ts --env.outputFolder ./dist",
     "dev-server": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.stats --env.debug --env.hmr --env.sourceMaps",
     "dev-server-fast": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.vendor --env.cache --env.hmr",
@@ -75,5 +75,5 @@
     "test": "jest",
     "test-debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand"
   },
-  "types": "./global.d.ts"
+  "types": "./dist/index.d.ts"
 }

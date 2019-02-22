@@ -5,9 +5,11 @@
   ],
   "exclude": [
     "node_modules",
-    "./demo"
+    "./demo",
+    "./src/lib/Surface.test.tsx",
+    "./src/lib/SurfaceDevTools.tsx"
   ],
   "compilerOptions": {
-    "lib": ["es6", "dom"]
+    "lib": ["es2017", "dom"]
   }
 }

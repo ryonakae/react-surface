@@ -3,6 +3,7 @@ import {observer} from 'mobx-react/custom';
 import {SurfaceStore} from './SurfaceStore';
 import {observable, action} from 'mobx';
 import * as Color from 'color';
+import {SurfaceStyle} from 'global';
 
 @observer
 export class SurfaceDevTools extends React.Component<{

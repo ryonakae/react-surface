@@ -7,6 +7,7 @@ import {uniq} from 'lodash';
 import {definedOr, GettableProps, TweenableProps} from './helpers';
 import {SurfaceBackground, SurfaceBorder, SurfaceImage} from './SurfaceEffects';
 import {SurfaceStore} from './SurfaceStore';
+import {YogaLayout, SurfaceProps, YogaNode} from 'global';
 
 const yoga = require('yoga-layout');
 

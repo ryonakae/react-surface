@@ -1,6 +1,7 @@
 import {Sprite, Graphics} from 'pixi.js';
 import {commonColors} from './constants';
 import {definedOr, TweenableProps} from './helpers';
+import {IColor, Size, SurfaceProps, RenderProps, SurfaceValueP} from 'global';
 
 export class SurfaceBackground extends Graphics {
   private currentColor: IColor = commonColors.transparent;

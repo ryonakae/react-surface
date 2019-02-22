@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class SurfaceStyleSheet {
-    static create(styles) {
+    create(styles) {
         return styles;
     }
 }

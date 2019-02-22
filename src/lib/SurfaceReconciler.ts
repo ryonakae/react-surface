@@ -1,6 +1,7 @@
 import {SurfaceStore} from './SurfaceStore';
 import {Surface, SurfaceRoot} from './Surface';
 import {uniq} from 'lodash';
+import {ReactReconciler, HostContext, SurfaceProps, FiberNode} from 'global';
 
 const createReconciler = require('react-reconciler');
 const now = require('performance-now');

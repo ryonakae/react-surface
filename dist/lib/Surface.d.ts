@@ -1,0 +1,60 @@
+import { Container, interaction } from 'pixi.js';
+import { GettableProps, TweenableProps } from './helpers';
+import { SurfaceStore } from './SurfaceStore';
+import { SurfaceProps, YogaNode } from 'global';
+export declare class Surface {
+    private mutableChildren;
+    protected pixiContainer: Container;
+    private backgroundColor?;
+    private backgroundImage?;
+    private border?;
+    private mask?;
+    private childContainer;
+    private pixiText?;
+    private layout?;
+    private textStyleGetters;
+    private tweens;
+    id: number;
+    isDestroyed: boolean;
+    yogaNode: YogaNode;
+    parentNode?: Surface;
+    props: SurfaceProps;
+    textValue?: string;
+    root: SurfaceRoot;
+    constructor(root?: SurfaceRoot, type?: string, container?: Container);
+    destroy(): void;
+    readonly children: ReadonlyArray<Surface>;
+    readonly hostInstance: Container;
+    readonly cascadedTextStyle: PIXI.TextStyleOptions;
+    readonly tweenableProps: TweenableProps<SurfaceProps>;
+    measureText(): {
+        width: number;
+        height: number;
+    };
+    updateProps(deltaProps?: SurfaceProps): void;
+    updateEvents(prevProps: SurfaceProps, nextProps: SurfaceProps): void;
+    updateTweenableProps(prevProps: SurfaceProps, nextProps: SurfaceProps): void;
+    createTextStyleGetters(): GettableProps<PIXI.TextStyleOptions>;
+    cascadeTextStyleGetters(): void;
+    updateYoga(): void;
+    updateMount(): void;
+    updatePixi(): void;
+    appendChild(child: Surface): void;
+    insertBefore(child: Surface, beforeChild: Surface): void;
+    removeChild(child: Surface): void;
+    protected addEventListener(name: string, handler: (e: interaction.InteractionEvent) => any): void;
+    protected removeEventListener(name: string, handler: (e: interaction.InteractionEvent) => any): void;
+    emitEvent(name: string, ...args: any[]): void;
+}
+export declare class SurfaceRoot extends Surface {
+    private app;
+    private target;
+    private store;
+    surfacesWithTweens: Map<number, Surface>;
+    constructor(target: HTMLElement, store: SurfaceStore);
+    destroy(): void;
+    afterCommit(): void;
+    private applyLayout;
+    private updateTweens;
+    updateBounds(): void;
+}

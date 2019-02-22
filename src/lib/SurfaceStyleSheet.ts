@@ -1,5 +1,7 @@
+import {SurfaceStyleDict} from 'global';
+
 export class SurfaceStyleSheet {
-  static create (styles: SurfaceStyleDict) {
+  create (styles: SurfaceStyleDict) {
     return styles;
   }
 }

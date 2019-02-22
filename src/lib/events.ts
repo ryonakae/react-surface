@@ -1,4 +1,5 @@
 import {interaction} from 'pixi.js';
+import {SurfaceProps, } from 'global';
 
 type SurfaceEventInfo = {
   pixiName: any;
