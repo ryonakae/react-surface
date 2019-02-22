@@ -1,13 +1,20 @@
 {
   "name": "react-surface",
-  "version": "0.1.0",
   "description": "A custom react renderer utilizing facebook yoga targeting canvas/webgl",
+  "version": "0.1.0",
   "author": "Kasper Sandin",
-  "repository": "https://github.com/ksandin/react-surface",
-  "main": "lib/react-surface.js",
-  "types": "global.d.ts",
   "dependencies": {
     "@tweenjs/tween.js": "^17.3.0",
+    "@types/color": "3.0.0",
+    "@types/lodash": "4.14.121",
+    "@types/pixi.js": "4.8.6",
+    "@types/prop-types": "15.5.9",
+    "@types/radium": "0.24.2",
+    "@types/react": "16.8.4",
+    "@types/react-dom": "^16.8.2",
+    "@types/react-hot-loader": "4.1.0",
+    "@types/tween.js": "17.2.0",
+    "@types/webfontloader": "1.6.29",
     "bezier-easing": "2.1.0",
     "color": "3.1.0",
     "fbjs": "1.0.0",
@@ -28,17 +35,7 @@
     "yoga-layout": "1.8.0"
   },
   "devDependencies": {
-    "@types/color": "3.0.0",
     "@types/jest": "21.1.5",
-    "@types/lodash": "4.14.121",
-    "@types/pixi.js": "4.8.6",
-    "@types/prop-types": "15.5.9",
-    "@types/radium": "0.24.2",
-    "@types/react": "16.8.4",
-    "@types/react-dom": "^16.8.2",
-    "@types/react-hot-loader": "4.1.0",
-    "@types/tween.js": "17.2.0",
-    "@types/webfontloader": "1.6.29",
     "@types/webpack": "4.4.24",
     "@types/webpack-dev-server": "^3.1.2",
     "@types/webpack-env": "1.13.7",
@@ -63,17 +60,20 @@
     "webpack-cli": "^3.2.3",
     "webpack-dev-server": "3.2.0"
   },
+  "main": "./dist/index.js",
+  "repository": "https://github.com/ksandin/react-surface",
   "scripts": {
+    "build": "tsc -p tsconfig-lib.json -outDir ./dist",
+    "build-demo": "webpack --config ./demo/webpack.config.ts --env.outputFolder ./dist",
+    "dev-server": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.stats --env.debug --env.hmr --env.sourceMaps",
+    "dev-server-fast": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.vendor --env.cache --env.hmr",
+    "lint": "tslint --project tsconfig.json --config tslint.json",
     "pre-commit": [
       "lint",
       "test"
     ],
-    "build": "webpack --config ./webpack.config.ts",
-    "build-demo": "webpack --config ./demo/webpack.config.ts --env.outputFolder ./dist",
-    "dev-server": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.cache --env.stats --env.debug --env.hmr --env.sourceMaps",
-    "dev-server-fast": "webpack-dev-server --config ./demo/webpack.config.ts --env.index --env.vendor --env.cache --env.hmr",
     "test": "jest",
-    "test-debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand",
-    "lint": "tslint --project tsconfig.json --config tslint.json"
-  }
+    "test-debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand"
+  },
+  "types": "./global.d.ts"
 }
